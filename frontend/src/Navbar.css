@@ -1,0 +1,17 @@
+ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+}
+
+.dropdown-menu li {
+  margin: 5px 0;
+}
