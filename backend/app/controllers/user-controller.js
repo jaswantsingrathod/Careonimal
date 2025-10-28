@@ -50,7 +50,7 @@ UserController.login = async (req, res) => {
     await User.findByIdAndUpdate(user._id, { $inc: { loginCount: 1 } })
     const tokenData = { userId: user._id, role: user.role };
     console.log(tokenData);
-    const token = jwt.sign(tokenData, process.env.JWT_SECRETE, { expiresIn: '15d' })
+    const token = jwt.sign(tokenData, process.env.JWT_SECRETE, { expiresIn: '30d' })
     res.json({ token: token })
 }
 
