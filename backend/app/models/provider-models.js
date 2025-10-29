@@ -17,6 +17,10 @@ const providerSchema = new mongoose.Schema(
       enum: ["boarding", "vet", "groomer"],
       required: true,
     },
+    servicesOffered: {
+      type: [String],
+      default: []
+   },
     businessName: {
       type: String,
       required: true,
@@ -44,7 +48,7 @@ const providerSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: "default.jpg",
+      default: "",
     },
     availability: {
       type: Boolean,

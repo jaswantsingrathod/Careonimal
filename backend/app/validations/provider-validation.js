@@ -5,6 +5,7 @@ export const providerValidation = Joi.object({
   serviceType: Joi.string()
     .valid("boarding", "vet", "groomer")
     .required(),
+  servicesOffered: Joi.array().items(Joi.string()).default([]),
   businessName: Joi.string()
     .min(3)
     .max(100)
@@ -24,4 +25,20 @@ export const providerValidation = Joi.object({
   rating: Joi.number().min(0).max(5).default(0),
   totalReviews: Joi.number().default(0),
   role: Joi.string().valid('provider').default('provider')
+});
+
+export const providerUpdateValidation = Joi.object({
+  serviceType: Joi.string().valid("boarding", "vet", "groomer"),
+  businessName: Joi.string().min(3).max(100),
+  description: Joi.string().max(300).allow("", null),
+  address: Joi.string(),
+  city: Joi.string(),
+  priceRange: Joi.string().allow("", null),
+  contactNumber: Joi.string().pattern(/^[0-9]{10}$/),
+  image: Joi.string().allow("", null),
+  availability: Joi.boolean(),
+  approvedByAdmin: Joi.boolean(),
+  rating: Joi.number().min(0).max(5),
+  totalReviews: Joi.number(),
+  servicesOffered: Joi.array().items(Joi.string())
 });
