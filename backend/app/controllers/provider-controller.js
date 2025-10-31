@@ -1,7 +1,7 @@
 import Provider from "../models/provider-models.js";
 import User from "../models/user-model.js";
 const ProviderController = {};
-import { providerValidation, providerUpdateValidation } from "../validations/provider-validation.js";
+import { providerValidation } from "../validations/provider-validation.js";
 
 ProviderController.create = async (req, res) => {
   try {
@@ -85,7 +85,7 @@ ProviderController.modify = async (req, res) => {
   try {
     const id = req.params.id;
     const body = req.body;
-    const { error, value } = providerUpdateValidation.validate(body, {
+    const { error, value } = providerValidation.validate(body, {
       abortEarly: false,
     });
     if (error) {
@@ -138,5 +138,58 @@ ProviderController.delete = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// 🌍 Find nearby providers using Haversine formula
+ProviderController.nearby = async (req, res) => {
+  try {
+    const userLat = parseFloat(req.query.lat);
+    const userLong = parseFloat(req.query.long);
+    const radius = parseFloat(req.query.radius) || 5; // default radius = 5 km
+
+    if (!userLat || !userLong) {
+      return res.status(400).json({ error: "Latitude and longitude are required" });
+    }
+
+    // Fetch only approved providers
+    // const providers = await Provider.find({ approvedByAdmin: true });
+
+    // Earth radius (in km)
+    const R = 6371;
+
+    // Helper function for distance
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const toRad = (val) => (val * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // distance in km
+    };
+
+    // Filter nearby providers
+    const nearbyProviders = providers
+      .map((provider) => {
+        const { latitude, longitude } = provider.address;
+        const distance = calculateDistance(userLat, userLong, latitude, longitude);
+        return { ...provider._doc, distance: distance.toFixed(2) };
+      })
+      .filter((p) => p.distance <= radius);
+
+    res.status(200).json({
+      message: `Providers within ${radius} km`,
+      count: nearbyProviders.length,
+      providers: nearbyProviders,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 export default ProviderController;

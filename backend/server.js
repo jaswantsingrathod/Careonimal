@@ -21,6 +21,7 @@ import { authenticateUser } from "./app/middlewares/authenticate-user.js";
 import { authorizeUser } from "./app/middlewares/authorize-user.js";
 
 
+app.get('/providers/nearby', ProviderController.nearby);
 app.post('/users/register', UserController.register)
 app.post('/users/login', UserController.login)
 // Protected routes 
@@ -32,7 +33,7 @@ app.delete('/user/account/delete/:id', authenticateUser, authorizeUser(["admin"]
 // service providers
 app.post('/providers/register',authenticateUser,uploadCloudinary.single('image'), ProviderController.create)
 app.get('/providers', authenticateUser, authorizeUser(["admin"]), ProviderController.list)
-app.get('/providers/:id', authenticateUser, ProviderController.account)
+app.get('/providers/:id', authenticateUser,authorizeUser(["provider"]), ProviderController.account)
 app.put('/provider/approve/:id', authenticateUser, authorizeUser(["admin"]), ProviderController.approve)
 app.put('/provider/account/update/:id', authenticateUser,authorizeUser(["provider", "admin"]),uploadCloudinary.single('image'), ProviderController.modify)
 app.delete('/provider/account/remove/:id', authenticateUser, authorizeUser(["admin"]), ProviderController.remove)
