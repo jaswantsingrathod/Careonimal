@@ -21,7 +21,7 @@ import { authenticateUser } from "./app/middlewares/authenticate-user.js";
 import { authorizeUser } from "./app/middlewares/authorize-user.js";
 
 
-app.get('/providers/nearby', ProviderController.nearby);
+// app.get('/providers/nearby', ProviderController.nearby);
 app.post('/users/register', UserController.register)
 app.post('/users/login', UserController.login)
 // Protected routes 
