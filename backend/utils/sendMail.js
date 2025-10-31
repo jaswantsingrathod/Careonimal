@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// ✅ reusable function
+//  reusable function
 export const sendMail = async (to, subject, html) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -18,12 +18,13 @@ export const sendMail = async (to, subject, html) => {
       from: `"Careonimal 🐾" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      html
+      html,
+      attachments 
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Mail sent successfully");
+    console.log("Mail sent successfully");
   } catch (error) {
-    console.error("❌ Mail sending failed:", error.message);
+    console.error("Mail sending failed:", error.message);
   }
 };

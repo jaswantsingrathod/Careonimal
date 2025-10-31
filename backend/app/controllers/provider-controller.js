@@ -31,21 +31,21 @@ ProviderController.create = async (req, res) => {
      await User.findByIdAndUpdate(provider.user, { role: "provider" });
 
      const user = await User.findById(req.userId);
-    // ✅ Send confirmation mail
+    //  Send confirmation mail
     await sendMail(
       user.email,
       "Welcome to Careonimal 🐾",
       `
       <h2>Hi ${user.username},</h2>
-      <p>Thank you for registering your service <b>${provider.businessName}</b> as a ${provider.serviceType} provider on <b>Careonimal.com</b>.</p>
+      <p>Thank you for registering your service <b>${provider.businessName}</b> as a ${provider.serviceType} provider on <b>Careonimal.com</b></p>
       <p>Our team will review and approve your profile soon.</p>
       <br>
-      <p>Warm regards,<br>Careonimal Team 🐶🐱</p>
+      <p>Warm regards,<br>Careonimal Team</p>
       `
     );
     res
       .status(201)
-      .json({ message: "Provider registered successfully", provider });
+      .json({ message: "Provider registered successfully. Confirmation mail sent.", provider });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

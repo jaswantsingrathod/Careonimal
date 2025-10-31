@@ -1,6 +1,6 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import { sendMail } from "../../utils/sendMail.js";
 import User from "../models/user-model.js";
 const UserController = {};
 import { userLoginValidation, userRegisterValidation } from "../validations/user-validation.js";
@@ -27,7 +27,18 @@ UserController.register = async (req, res) => {
       user.role = "admin";
     }
     await user.save();
-    res.status(201).json(user);
+    await sendMail(
+      user.email,
+      "Welcome to Careonimal 🐾",
+      `
+      <h2>Hi ${user.username},</h2>
+      <p>Thank you for registering on <b>Careonimal.com</b></p>
+      <p>You can now explore pet services like vets, groomers, and boarding centers.</p>
+      <br>
+      <p>Best wishes,<br>The Careonimal Team</p>
+      `
+    );
+    res.status(201).json("Registered successfully",user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
