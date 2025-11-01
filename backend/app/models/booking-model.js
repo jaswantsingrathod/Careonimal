@@ -5,60 +5,58 @@ const bookingSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     provider: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Provider",
-      required: true
+      required: true,
     },
 
     petType: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     service: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
-
-    price: {
-      type: Number,
-      required: true,
-      min: 0
+    price: { 
+      type: Number, 
+      required: true 
     },
 
     bookingDate: {
       type: Date,
-      required: true
+      required: true,
     },
 
     timeSlot: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     paymentStatus: {
       type: String,
       enum: ["pending", "completed", "failed"],
-      default: "pending"
+      default: "pending",
     },
 
     bookingStatus: {
       type: String,
       enum: ["pending", "confirmed", "completed", "cancelled"],
-      default: "pending"
+      default: "pending",
     },
 
     notes: {
       type: String,
-      trim: true
-    }
+      trim: true,
+    },
   },
   { timestamps: true }
 );

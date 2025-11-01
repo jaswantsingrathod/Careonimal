@@ -61,7 +61,7 @@ UserController.login = async (req, res) => {
     await User.findByIdAndUpdate(user._id, { $inc: { loginCount: 1 } })
     const tokenData = { userId: user._id, role: user.role };
     console.log(tokenData);
-    const token = jwt.sign(tokenData, process.env.JWT_SECRETE, { expiresIn: '30d' })
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' })
     res.json({ token: token })
 }
 
@@ -86,9 +86,10 @@ UserController.account = async (req, res) => {
 }
 
 UserController.modify = async (req, res) => {
-  const id = req.params.id
   try {
-    const updatedUser = await User.findByIdAndUpdate(id, req.body, {
+    const id = req.params.id
+    const body = req.body
+    const updatedUser = await User.findByIdAndUpdate(id,body, {
       new: true,         
       runValidators: true 
     });
@@ -102,8 +103,8 @@ UserController.modify = async (req, res) => {
 };
 
 UserController.remove = async (req, res) => {
-  const id = req.params.id
   try {
+    const id = req.params.id
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ error: 'User not found' });

@@ -52,14 +52,38 @@ ProviderController.create = async (req, res) => {
 };
 
 ProviderController.list = async (req, res) => {
-  const body = req.body;
   try {
-    const users = await Provider.find(body);
-    res.status(200).json(users);
+    const { city, serviceType, petType, businessName } = req.query;
+
+    // ✅ Role-based filter
+    const filters = {};
+    if (req.role !== "admin") {
+      filters.approvedByAdmin = true;
+    }
+
+    // ✅ Apply search filters
+    if (city) filters.city = { $regex: city, $options: "i" };
+    if (serviceType) filters.serviceType = serviceType;
+    if (businessName)
+      filters.businessName = { $regex: businessName, $options: "i" };
+    if (petType)
+      filters["servicesOffered.petType"] = { $regex: petType, $options: "i" };
+
+    const providers = await Provider.find(filters)
+      .populate("user", "username email")
+      .select("-__v")
+      .sort({ createdAt: -1 });
+
+    if (!providers.length) {
+      return res.status(404).json({ message: "No providers found" });
+    }
+
+    res.status(200).json(providers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 ProviderController.approve = async (req, res) => {
   try {

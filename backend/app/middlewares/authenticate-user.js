@@ -6,7 +6,7 @@ export const  authenticateUser = (req, res, next) => {
         return res.status(401).json({ error: 'Token not provided' })
     }
     try {
-        let tokenData = jwt.verify(token, process.env.JWT_SECRETE)
+        let tokenData = jwt.verify(token, process.env.JWT_SECRET)
         console.log('Token data', tokenData);
         req.userId = tokenData.userId
         req.role = tokenData.role
