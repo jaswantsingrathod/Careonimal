@@ -55,13 +55,13 @@ ProviderController.list = async (req, res) => {
   try {
     const { city, serviceType, petType, businessName } = req.query;
 
-    // ✅ Role-based filter
+    // Role-based filter
     const filters = {};
     if (req.role !== "admin") {
       filters.approvedByAdmin = true;
     }
 
-    // ✅ Apply search filters
+    // Apply search filters
     if (city) filters.city = { $regex: city, $options: "i" };
     if (serviceType) filters.serviceType = serviceType;
     if (businessName)

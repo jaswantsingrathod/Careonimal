@@ -14,7 +14,7 @@ export const providerValidation = Joi.object({
     longitude: Joi.number().required().min(-180).max(180)
   }).required(),
 
-  // city: Joi.string().required(),
+  city: Joi.string().required(),
 
   priceRange: Joi.string().allow("", null),
 

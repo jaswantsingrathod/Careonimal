@@ -18,8 +18,7 @@ export const sendMail = async (to, subject, html) => {
       from: `"Careonimal 🐾" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      html,
-      attachments 
+      html 
     };
 
     await transporter.sendMail(mailOptions);

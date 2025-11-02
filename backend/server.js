@@ -33,7 +33,7 @@ app.delete('/user/account/delete/:id', authenticateUser, authorizeUser(["admin"]
 
 // service providers
 app.post('/providers/register',authenticateUser,uploadCloudinary.single('image'), ProviderController.create)
-app.get('/providers', authenticateUser, authorizeUser(["admin", "provider", "user"]), ProviderController.list)
+app.get('/providers', authenticateUser, authorizeUser(["admin", "user"]), ProviderController.list)
 app.get('/providers/:id', authenticateUser,authorizeUser(["provider"]), ProviderController.account)
 app.put('/provider/approve/:id', authenticateUser, authorizeUser(["admin"]), ProviderController.approve)
 app.put('/provider/account/update/:id', authenticateUser,authorizeUser(["provider", "admin"]),uploadCloudinary.single('image'), ProviderController.modify)

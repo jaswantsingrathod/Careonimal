@@ -36,7 +36,11 @@ const providerSchema = new mongoose.Schema(
       latitude: { type: Number, required: true },
       longitude: { type: Number, required: true }
     },
-    
+    city: {
+      type: String,
+      required: true,
+      trim: true
+    },
     priceRange: {
       type: String,
       trim: true
