@@ -74,10 +74,11 @@ BookingController.create = async (req, res) => {
 
 BookingController.userBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.userId })
-      .populate("provider", "businessName serviceType contact")
-      .sort({ createdAt: -1 });
-
+     const filter =
+      req.role === "admin"? {} : { user: req.userId }; // user → only their bookings
+    const bookings = await Booking.find(filter)
+      .populate("provider", "businessName contact")
+      .sort({ createdAt: -1 })
     if (!bookings.length) {
       return res.status(404).json({ message: "No bookings found" });
     }

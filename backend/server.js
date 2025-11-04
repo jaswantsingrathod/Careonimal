@@ -60,7 +60,8 @@ app.delete('/bookings/delete/:id', authenticateUser, authorizeUser(["admin"]), B
 
 // reviews routes
 app.post('/reviews/make-review', authenticateUser, authorizeUser(["user"]), ReviewController.makeReview)
-
+app.get('/reviews/all', ReviewController.allReviews)
+app.get('/reviews/my-reviews', authenticateUser, authorizeUser(["provider"]), ReviewController.myReviews)
 
 
 app.listen(port, () => {
