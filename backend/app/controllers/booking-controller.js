@@ -74,11 +74,10 @@ BookingController.create = async (req, res) => {
 
 BookingController.userBookings = async (req, res) => {
   try {
-     const filter =
-      req.role === "admin"? {} : { user: req.userId }; // user → only their bookings
+    const filter = req.role === "admin" ? {} : { user: req.userId }; // user → only their bookings
     const bookings = await Booking.find(filter)
       .populate("provider", "businessName contact")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
     if (!bookings.length) {
       return res.status(404).json({ message: "No bookings found" });
     }
@@ -95,7 +94,10 @@ BookingController.providerBookings = async (req, res) => {
       return res.status(404).json({ error: "Provider profile not found" });
     }
 
-    const bookings = await Booking.find({ provider: provider._id, bookingStatus: {$ne: "cancelled"} })
+    const bookings = await Booking.find({
+      provider: provider._id,
+      bookingStatus: { $ne: "cancelled" },
+    })
       .populate("user", "username email contact")
       .sort({ createdAt: -1 });
 
@@ -166,17 +168,17 @@ BookingController.cancel = async (req, res) => {
   }
 };
 
-BookingController.delete = async (req, res)=> {
-    try{
-        const id = req.params.id
-        const booking = await Booking.findByIdAndDelete(id)
-        if(!booking){
-            return res.status(404).json({error: "Booking not found"})
-        }
-        res.status(200).json({message: "Booking deleted successfully"})
-    }catch(err){
-        res.status(500).json({error: err.message})
+BookingController.delete = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const booking = await Booking.findByIdAndDelete(id);
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
     }
-}
+    res.status(200).json({ message: "Booking deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export default BookingController;
