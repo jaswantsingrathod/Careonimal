@@ -58,11 +58,30 @@ UserController.login = async (req, res) => {
     if (!passwordMatch) {
         return res.status(401).json({ error: 'Invalid email / password' })
     }
+
     await User.findByIdAndUpdate(user._id, { $inc: { loginCount: 1 } })
     const tokenData = { userId: user._id, role: user.role };
     console.log(tokenData);
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' })
-    res.json({ token: token })
+
+    // only logged in users data
+    const userDetais = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    };
+
+    // admin logs in send all users
+    if(user.role === "admin"){
+      const allUsers = await User.find().sort({createdAt: -1})
+      return res.status(200).json({token,
+        user: userDetais,
+        users: allUsers})
+    }
+
+    return res.status(200).json({ token, user: userDetais });
 }
 
 UserController.list = async (req, res) => {
@@ -76,14 +95,26 @@ UserController.list = async (req, res) => {
 };
 
 UserController.account = async (req, res) => {
-  const id = req.params.id
-    try{
-        const user = await User.findById(id)
-        res.status(200).json(user)
-    }catch(err){
-        res.status(500).json({error: err.message})
+  try {
+    // req.userId is set by authenticateUser middleware (from JWT)
+    const userId = req.userId;
+
+    // Find the user by ID, exclude password
+    const user = await User.findById(userId)
+
+    // If not found, handle gracefully
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
-}
+
+    // Send user details
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error fetching user account:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 UserController.modify = async (req, res) => {
   try {

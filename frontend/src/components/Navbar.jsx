@@ -1,46 +1,90 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "../Navbar.css";
+import { Link } from "react-router-dom";
+import { useContext } from "react";
+import UserContext from "@/context/User-Context";
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const { isLoggedIn, handleLogout } = useContext(UserContext);
+
   return (
-    <nav>
-      <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
+    <div className="w-full border-b shadow-sm bg-white px-6 py-3">
+      <NavigationMenu>
+        <NavigationMenuList className="flex items-center gap-6">
+          {/* Logo / Home */}
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link to="/" className="font-semibold text-lg">
+                🐾 Careonimal
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
 
-        <li className="dropdown">
-          <span onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
-            Services
-          </span>
+          {/* Common links */}
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link to="/">Home</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
 
-          {open && (
-            <ul className="dropdown-menu">
-              <li>
-                <Link to="/boarding">Boarding</Link>
-              </li>
-              <li>
-                <Link to="/clinic">Veterinary Clinics</Link>
-              </li>
-              <li>
-                <Link to="/groomers">Groomers</Link>
-              </li>
-            </ul>
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link to="/contact">Conatct</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link to="/about">About Us</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link to="/provider">Become A Provider</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+
+
+          {/* Conditional links */}
+          {!isLoggedIn ? (
+            <>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/login">Sign In</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </>
+          ) : (
+            <>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Button
+                    variant="outline"
+                    className="text-red-600 border-red-500 hover:bg-red-50"
+                    onClick={() => {
+                      handleLogout()
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </>
           )}
-        </li>
-
-        <li>
-          <Link to="/contact">Contact</Link>
-        </li>
-
-        <li>
-          <Link to="/register">Login or Signup</Link>
-          
-        </li>
-      </ul>
-    </nav>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
   );
 }
