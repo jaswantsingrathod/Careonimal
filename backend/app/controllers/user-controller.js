@@ -96,7 +96,6 @@ UserController.list = async (req, res) => {
 
 UserController.account = async (req, res) => {
   try {
-    // req.userId is set by authenticateUser middleware (from JWT)
     const userId = req.userId;
 
     // Find the user by ID, exclude password
@@ -106,8 +105,6 @@ UserController.account = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    // Send user details
     res.status(200).json(user);
   } catch (err) {
     console.error("Error fetching user account:", err);

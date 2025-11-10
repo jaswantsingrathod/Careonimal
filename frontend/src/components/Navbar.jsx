@@ -20,7 +20,7 @@ export default function Navbar() {
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
               <Link to="/" className="font-semibold text-lg">
-                🐾 Careonimal
+                 Careonimal🐾
               </Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
@@ -71,8 +71,6 @@ export default function Navbar() {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Button
-                    variant="outline"
-                    className="text-red-600 border-red-500 hover:bg-red-50"
                     onClick={() => {
                       handleLogout()
                     }}

@@ -54,7 +54,7 @@ export default function Login() {
       </form>
         <ul>
           <li>
-            <Link to="/register">Don't have an Account? Register</Link>
+            <Link to="/register">Don't have an Account?  Register</Link>
           </li>
         </ul>
     </div>
