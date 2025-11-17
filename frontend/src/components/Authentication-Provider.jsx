@@ -3,6 +3,7 @@ import { useEffect, useReducer } from "react";
 import UserReducer from "../reducer/UserReducer";
 import axios from "../config/axios";
 import { useNavigate } from "react-router-dom";
+import {toast} from "react-toastify"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -20,7 +21,7 @@ export default function AuthenticationProvider(props) {
       const response = await axios.post(`/users/register`, formData);
       console.log(response.data);
       resetForm();
-      alert("successfully registered");
+      toast.success("successfully registered");
       navigate("/login");
     } catch (err) {
       userDispatch({ type: "SERVER_ERRORS", payload: err.response.data.error });
@@ -52,8 +53,8 @@ export default function AuthenticationProvider(props) {
       }
 
       resetForm();
-      alert("Successfully Logged in");
-      alert(`Welcome ${user.username}`);
+      toast.success("Successfully Logged in");
+      // alert(`Welcome ${user.username}`);
     } catch (err) {
       console.log(err?.response?.data?.error);
       userDispatch({

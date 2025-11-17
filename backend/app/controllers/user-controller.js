@@ -94,6 +94,19 @@ UserController.list = async (req, res) => {
   }
 };
 
+UserController.singleAccount = async (req,res) => {
+  try{
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if(!user){
+      return res.status(404).json({error: "User not found"});
+    }
+    res.status(200).json(user);
+  }catch(err){
+    res.status(500).json({error: err.message});
+  }
+}
+
 UserController.account = async (req, res) => {
   try {
     const userId = req.userId;
@@ -111,7 +124,6 @@ UserController.account = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 UserController.modify = async (req, res) => {
   try {

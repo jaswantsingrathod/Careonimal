@@ -1,135 +1,135 @@
 import { Link } from "react-router-dom";
 import { useContext } from "react";
 import UserContext from "@/context/User-Context";
+import img from "../assets/careonimallogo.png";
+
 import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
+
 import { Button } from "@/components/ui/button";
-import img from "../assets/careonimallogo.png";
 
 export default function Navbar() {
   const { isLoggedIn, handleLogout, user } = useContext(UserContext);
 
-  // If admin is logged in, show a compact admin bar (or return null to hide completely)
+  // ADMIN NAVBAR — darker & premium
   if (user?.role === "admin") {
     return (
-      <div className="w-full border-b border-white/10 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 text-white px-6 py-3 shadow-lg">
-    <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="w-full backdrop-blur-lg bg-neutral-950/90 border-b border-neutral-800 px-6 py-3 shadow-md">
+        <div className="max-w-6xl mx-auto flex items-center justify-between text-neutral-200">
 
-      {/* LEFT */}
-      <div className="flex items-center gap-3">
-        <Link
-          to="/adminDashboard"
-          className="text-lg font-semibold tracking-wide hover:text-blue-400 transition"
-        >
-          Admin Panel
-        </Link>
-      </div>
+          {/* LEFT — Logo + Admin Panel */}
+          <div className="flex items-center gap-3">
+            <img src={img} alt="Logo" className="h-7 w-7 object-contain" />
+            <Link
+              to="/adminDashboard"
+              className="text-lg font-semibold tracking-wide hover:text-white transition"
+            >
+              Admin Panel
+            </Link>
+          </div>
 
-      {/* RIGHT */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          className="text-sm text-gray-300 hover:text-white hover:bg-white/10 transition"
-          onClick={navigateToAdminSettings}
-        >
-          ⚙️ Settings
-        </Button>
+          {/* RIGHT */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              className="text-neutral-300 hover:text-white hover:bg-neutral-800"
+              onClick={navigateToAdminSettings}
+            >
+              ⚙ Settings
+            </Button>
 
-        <Button
-          className="text-sm bg-red-600 hover:bg-red-700 transition"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
-      </div>
-    </div>
-  </div>
+            <Button
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
     );
   }
 
-  // Normal navbar for non-admins
+  // USER NAVBAR — light & transparent
   return (
-    <div className="w-full flex justify-center border-b shadow-sm bg-white px-6 py-2 font-medium">
-      <NavigationMenu>
-        <NavigationMenuList className="flex items-center gap-8 max-w-6xl mx-auto">
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to="/" className="flex items-center gap-2">
-                {/* <img className="h-8 w-8" src={img} alt="Logo" />
-                <span className="font-semibold">Careonimal</span> */}
-              </Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+    <header className="w-full backdrop-blur-md bg-white/80 border-b border-neutral-200 shadow-sm">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
 
-          {/* Common links */}
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to="/">Home</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <img src={img} alt="Logo" className="h-8 w-8 object-contain" />
+          <Link to="/" className="text-lg font-semibold text-neutral-800">
+            Careonimal
+          </Link>
+        </div>
 
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to="/contact">Contact</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+        <NavigationMenu>
+          <NavigationMenuList className="flex items-center gap-6">
+            <NavItem to="/">Home</NavItem>
+            <NavItem to="/contact">Contact</NavItem>
+            <NavItem to="/about">About Us</NavItem>
+            <NavItem to="/provider">Become a Provider</NavItem>
+          </NavigationMenuList>
+        </NavigationMenu>
 
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to="/about">About Us</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+        <div className="flex items-center gap-3">
+          {!isLoggedIn ? (
+            <Button
+              asChild
+              variant="outline"
+              className="border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+            >
+              <Link to="/login">Sign In</Link>
+            </Button>
+          ) : (
+            <>
+              <Button
+                asChild
+                variant="ghost"
+                className="text-neutral-700 hover:text-black"
+              >
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
 
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to="/provider">Become a Provider</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-
-          <div className="ml-auto flex items-center gap-4">
-            {/* Conditional links */}
-            {!isLoggedIn ? (
-              <>
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/login">Sign In</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </>
-            ) : (
-              <>
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Button
-                      onClick={() => {
-                        handleLogout();
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </>
-            )}
-          </div>
-        </NavigationMenuList>
-      </NavigationMenu>
-    </div>
+              <Button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                Logout
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
 
-// small helper — if you want a button that navigates to admin settings
+function NavItem({ to, children }) {
+  return (
+    <NavigationMenuItem>
+      <NavigationMenuLink asChild>
+        <Link
+          to={to}
+          className="
+            relative text-sm text-neutral-700 hover:text-black transition 
+            after:absolute after:left-0 after:-bottom-1 after:h-[1.5px]
+            after:w-0 after:bg-neutral-900 after:transition-all after:duration-300
+            hover:after:w-full
+          "
+        >
+          {children}
+        </Link>
+      </NavigationMenuLink>
+    </NavigationMenuItem>
+  );
+}
+
+
 function navigateToAdminSettings() {
-  // keep it simple and avoid importing useNavigate inside top-level component
   window.location.href = "/admin/settings";
 }

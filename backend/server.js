@@ -33,6 +33,7 @@ app.post('/users/login', UserController.login)
 // Protected routes 
 app.get('/users',authenticateUser,authorizeUser(["admin"]), UserController.list)
 app.get('/users/account', authenticateUser,authorizeUser(["admin", "user"]),UserController.account)
+app.get('/users/:id', authenticateUser, authorizeUser(["admin"]), UserController.singleAccount)
 app.put('/user/account/update/:id', authenticateUser,authorizeUser(["admin", "user"]), UserController.modify)
 app.delete('/user/account/delete/:id', authenticateUser, authorizeUser(["admin"]), UserController.remove)
 
@@ -48,7 +49,7 @@ app.delete('/provider/account/delete/:id', authenticateUser, authorizeUser(["pro
 app.post('/providers/subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.subscription)
 app.get('/providers/my-subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.mySubscription)
 app.get('/providers/subscriptions', authenticateUser, authorizeUser(["admin"]), providerSubscriptionController.allSubscriptions)
-app.get('/providers/:id', authenticateUser,authorizeUser(["provider"]), ProviderController.account)
+app.get('/providers/:id', authenticateUser,authorizeUser(["provider", "admin"]), ProviderController.account)
 
 // bookings
 app.post('/bookings/create', authenticateUser, authorizeUser(["user"]), BookingController.create);

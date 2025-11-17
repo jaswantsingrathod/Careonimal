@@ -33,7 +33,6 @@ export const deleteUser = createAsyncThunk(
       });
       console.log("User deleted:", res.data);
       return res.data; // just message / deleted user, not list
-
     } catch (err) {
       console.error("Delete user error:", err);
       return rejectWithValue(
@@ -44,17 +43,49 @@ export const deleteUser = createAsyncThunk(
 );
 
 export const fetchSingleUser = createAsyncThunk(
-  "admin/fetchSingleUser", async (id, {rejectWithValue}) => {
+  "admin/fetchSingleUser",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/users/${id}`, {
+        headers: { Authorization: localStorage.getItem("token") },
+      });
+      console.log("view", res.data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      return rejectWithValue(err?.response?.data?.error || "Failed to view");
+    }
+  }
+);
+
+export const fetchProvider = createAsyncThunk(
+  "admin/fetchProvider", async (undefined, {rejectWithValue}) => {
     try{
-      const res = await axios.get(`/users/${id}`, {headers: {Authorization: localStorage.getItem("token")}})
-      console.log("view",res.data);
+      const res = await axios.get(`/providers`, {headers: {Authorization: localStorage.getItem("token")}})
+      // console.log("providers",res.data);
       return res.data
     }catch(err){
-      console.log(err);
-      return rejectWithValue(err?.response?.data?.error || "Failed to view")
+      console.log(err.response.data.error);
+      return rejectWithValue(err.response.data.error)
     }
   }
 )
+
+export const fetchSingleProvider = createAsyncThunk(
+  "admin/fetchSingleProvider",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/providers/${id}`, {
+        headers: { Authorization: localStorage.getItem("token")},
+      });
+      console.log(res.data);
+      return res.data;
+    } catch (err) {
+      console.log(err.response.data.error);
+      return rejectWithValue(err.response.data.error);
+    }
+  }
+);
 
 /* ---------- HELPERS ---------- */
 
@@ -83,11 +114,15 @@ const adminSlice = createSlice({
     error: null,
     approving: false,
     selectedUser: null,
-    isUserViewOpen: false
+    isUserViewOpen: false,
+    selectedProvider: null,
   },
   reducers: {
     clearAdminError(state) {
       state.error = null;
+    },
+    setSelectedProvider(state, action) {
+      state.selectedProvider = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -122,19 +157,53 @@ const adminSlice = createSlice({
         state.error = action.payload;
       });
 
-      // View Users
-      builder
+    // View Users
+    builder
       .addCase(fetchSingleUser.pending, (state) => {
-        state.loading = true,
-        state.error = null
-      }) 
+        (state.loading = true), (state.error = null);
+      })
       .addCase(fetchSingleUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedUser = action.payload;  // use this in your modal
+        state.selectedUser = action.payload; // use this in your modal
         state.isUserViewOpen = true;
       })
+      .addCase(fetchSingleUser.rejected, (state, action) => {
+        (state.loading = false), (state.error = action.payload);
+      });
+
+      // fetch Providers
+      builder
+    .addCase(fetchProvider.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(fetchProvider.fulfilled, (state, action) => {
+      state.loading = false;
+      state.providers = Array.isArray(action.payload)
+        ? action.payload
+        : action.payload?.providers ?? [];
+    })
+    .addCase(fetchProvider.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+
+    // View Provider
+    builder
+      .addCase(fetchSingleProvider.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSingleProvider.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedProvider = action.payload;
+      })
+      .addCase(fetchSingleProvider.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const { clearAdminError } = adminSlice.actions;
+export const { clearAdminError, setSelectedProvider } = adminSlice.actions;
 export default adminSlice.reducer;

@@ -48,38 +48,45 @@ export default function Dashboard() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const openEditForUser = () => {
+    const digits = (user.phone || "").replace(/\D/g, "").slice(-10);
     dispatch({
       type: "OPEN_EDIT",
       payload: {
         email: user.email,
         username: user.username,
-        phone: user.phone,
+        phone: digits,
       },
     });
   };
 
   const handleEdit = async (id, updatedData) => {
-    if (!/^\d{10}$/.test(updatedData.phone)) {
-      alert("Phone number must be exactly 10 digits");
-      return;
-    }
-    try {
-      dispatch({ type: "SET_SAVING", payload: true });
-      const response = await axios.put(
-        `/user/account/update/${id}`,
-        updatedData,
-        { headers: { Authorization: localStorage.getItem("token") } }
-      );
-      userDispatch({ type: "LOGIN", payload: response.data });
-      dispatch({ type: "CLOSE_EDIT" });
-      alert("User updated successfully!");
-    } catch (err) {
-      console.log("Update failed:", err?.response?.data?.error || err.message);
-      alert(err?.response?.data?.error || "Update failed");
-    } finally {
-      dispatch({ type: "SET_SAVING", payload: false });
-    }
-  };
+  const digits = (updatedData.phone || "").replace(/\D/g, "");
+  if (digits.length !== 10) {
+    alert("Phone number must be exactly 10 digits");
+    return;
+  }
+  // backend expects +91XXXXXXXXXX
+  const phoneToSend = `+91${digits}`;
+  const payload = { ...updatedData, phone: phoneToSend };
+  try {
+    dispatch({ type: "SET_SAVING", payload: true });
+    const response = await axios.put(
+      `/user/account/update/${id}`,
+      payload,
+      { headers: { Authorization: localStorage.getItem("token") } }
+    );
+    // assuming response.data is the updated user
+    userDispatch({ type: "LOGIN", payload: response.data });
+    dispatch({ type: "CLOSE_EDIT" });
+    alert("User updated successfully!");
+  } catch (err) {
+    // console.log("Update failed:", err?.response?.data?.error || err.message);
+    alert(err?.response?.data?.error || "Update failed");
+  } finally {
+    dispatch({ type: "SET_SAVING", payload: false });
+  }
+};
+
 
   if (!user)
     return (

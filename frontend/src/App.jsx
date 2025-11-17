@@ -9,17 +9,18 @@ import AboutUs from './pages/AboutUs'
 import Dashboard from './pages/Dashboard'
 import AdminDasboard from './pages/AdminDashboard'
 import UserProfile from './pages/UserProfile'
-// import { useContext } from 'react'
-// import UserContext from './context/User-Context'
-// import { useNavigate } from 'react-router-dom'
+import ProviderProfile from './pages/ProviderProfile'
 
 import './App.css'
 import { Routes, Route} from "react-router-dom"
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
 
   return (
     <>
+    <ToastContainer position="top-right" theme="colored" autoClose={2000} />
       <div>
         <Navbar/>
         <Routes>
@@ -33,6 +34,7 @@ function App() {
           <Route path='/dashboard' element={<Dashboard/>}></Route>
           <Route path='/adminDashboard' element={<AdminDasboard/>}></Route>
           <Route path='/admin/user/:id' element={<UserProfile/>}></Route>
+          <Route path='/admin/provider/:id' element={<ProviderProfile/>}></Route>
         </Routes>
       </div>
     </>

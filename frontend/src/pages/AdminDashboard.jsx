@@ -1,46 +1,74 @@
 import { useEffect, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsers, deleteUser, fetchSingleUser } from "../slices/admin-slice";
-import {Users, PawPrint, Eye, Trash, Book    } from 'lucide-react';
+import {
+  fetchUsers,
+  deleteUser,
+  fetchSingleUser,
+  fetchProvider,
+  setSelectedProvider,
+} from "../slices/admin-slice";
+import { Users, PawPrint, Eye, Trash, Book } from "lucide-react";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import UserContext from "../context/User-Context";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
-  const navigate = useNavigate()
-  const { users, loading, error } = useSelector((state) => state.admin);
+  const navigate = useNavigate();
+  const { users, loading, error, providers } = useSelector(
+    (state) => state.admin
+  );
   const { user } = useContext(UserContext);
 
   useEffect(() => {
     dispatch(fetchUsers());
+    dispatch(fetchProvider());
   }, []);
 
   const handleRefresh = () => {
     dispatch(fetchUsers());
+    dispatch(fetchProvider());
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
       dispatch(deleteUser(id));
+  };
+
+  const handleView = (record) => {
+    if (record.role === "provider") {
+      const provider = providers.find((ele) => ele.user?._id === record._id);
+      if (!provider) {
+        alert("This provider has not completed their provider profile yet.");
+        return;
+      }
+      dispatch(setSelectedProvider(provider));
+      navigate(`/admin/provider/${provider._id}`);
+    } else {
+      dispatch(fetchSingleUser(record._id));
+      navigate(`/admin/user/${record._id}`);
     }
   };
 
-  const handleView = (id) => {
-    dispatch(fetchSingleUser(id))
-    navigate(`/admin/user/${id}`)
-  }
-
   const visibleUsers = users?.filter((ele) => ele._id !== user?._id) ?? [];
   const totalUsers = visibleUsers.filter((ele) => ele.role === "user").length;
-  const totalProviders = visibleUsers.filter((ele) => ele.role === "provider").length;
+  const totalProviders = visibleUsers.filter(
+    (ele) => ele.role === "provider"
+  ).length;
 
-  if (!user) 
-    return (
-     <p>Loading...</p>
-    )
+  if (!user) return <p>Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -65,7 +93,7 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="text-sm">
                 <div className="flex flex-row justify-center items-center   gap-2">
-                  <Users className="h-7 w-5 text-blue-600"/> 
+                  <Users className="h-7 w-5 text-blue-600" />
                   <span>Total Users</span>
                 </div>
               </CardTitle>
@@ -74,14 +102,14 @@ export default function AdminDashboard() {
                   {loading ? "—" : totalUsers}
                 </div>
               </CardContent>
-            </CardHeader>   
+            </CardHeader>
           </Card>
 
           <Card className="h-24 w-full sm:w-auto p-2">
             <CardHeader>
               <CardTitle className="text-sm">
-                <div className="flex flex-row justify-center items-center gap-2"> 
-                  <PawPrint className="h-7 w-5 text-green-600"/> 
+                <div className="flex flex-row justify-center items-center gap-2">
+                  <PawPrint className="h-7 w-5 text-green-600" />
                   <span>Total Providers</span>
                 </div>
               </CardTitle>
@@ -97,7 +125,7 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="text-sm">
                 <div className="flex flex-row justify-center items-center gap-2">
-                  <Book className="h-7 w-5 text-purple-600"/> 
+                  <Book className="h-7 w-5 text-purple-600" />
                   <span>Total Bookings</span>
                 </div>
               </CardTitle>
@@ -160,21 +188,47 @@ export default function AdminDashboard() {
                           : "—"}
                       </td>
                       <td className="px-4 py-2 border text-center">
-                        <button className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
-                        onClick={() => {
-                          handleView(ele._id)
-                        }}
+                        <button
+                          className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
+                          onClick={() => {
+                            handleView(ele);
+                            // handleView(ele._id)
+                          }}
                         >
-                          <Eye/>
+                          <Eye />
                         </button>
 
                         {user.role === "admin" && user._id !== ele._id && (
-                          <button
-                            onClick={() => handleDelete(ele._id)}
-                            className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition"
-                          >
-                            <Trash/>
-                          </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition">
+                                <Trash />
+                              </button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete the user.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(ele._id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </td>
                     </tr>
@@ -195,6 +249,7 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+        {/* <ProviderProfile/> */}
       </div>
     </div>
   );

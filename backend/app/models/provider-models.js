@@ -69,7 +69,7 @@ const providerSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    servicesOffered: [serviceOfferedSchema] // 🔥 nested array of objects
+    servicesOffered: [serviceOfferedSchema] //  nested array of objects
   },
   { timestamps: true }
 );
