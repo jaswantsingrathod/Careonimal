@@ -10,7 +10,7 @@ const UserReducer = (state, action) => {
             return {...state, serverError: action.payload}
         }
         case "LOGOUT": {
-            return {...state, isLoggedIn: false}
+            return {...state, isLoggedIn: false, user: null, serverError: ""}
         }
         case "CLEAR_ERROR": {
             return {...state, serverError:""}

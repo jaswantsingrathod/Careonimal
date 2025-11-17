@@ -26,51 +26,63 @@ export default function Register() {
   }, []);
 
   return (
-    <div>
-      <h4>Register Page</h4>
-      {serverError && <p className ="text-red-500">{serverError}</p>}
+    <div className="w-full min-h-screen flex flex-col justify-center items-center bg-gray-100 px-4">
+
+      <h4 className="text-2xl  font-bold text-gray-800 mb-4">Register Here</h4>
+
+      {serverError && (
+        <p className="text-red-500 font-medium mb-2">{serverError}</p>
+      )}
+
       <form
         onSubmit={formik.handleSubmit}
-        className="flex w-full items-center gap-2"
+        className="w-full flex justify-center"
       >
-        <div className="">
+        <div className="flex flex-col gap-3 p-6 w-full max-w-xs bg-white rounded-xl shadow-md border">
+
           <Input
             type="text"
             value={formik.values.username}
             name="username"
             onChange={formik.handleChange}
             placeholder="Enter Username"
+            className="p-2 border rounded-md focus:ring-2 focus:ring-blue-400 w-full"
           />
-        </div>
-        <div>
+
           <Input
             type="text"
             value={formik.values.email}
             name="email"
             onChange={formik.handleChange}
             placeholder="Enter Email"
+            className="p-2 border rounded-md focus:ring-2 focus:ring-blue-400 w-full"
           />
-        </div>
-        <div>
+
           <Input
-            type="text"
+            type="password"
             name="password"
             value={formik.values.password}
             onChange={formik.handleChange}
             placeholder="Enter Password"
+            className="p-2 border rounded-md focus:ring-2 focus:ring-blue-400 w-full"
           />
-        </div>
-        <div>
+
           <Input
             type="tel"
             value={formik.values.phone}
             name="phone"
             onChange={formik.handleChange}
             placeholder="Enter Number"
+            className="p-2 border rounded-md focus:ring-2 focus:ring-blue-400 w-full"
           />
-        </div>
-        <div>
-          <Button type="submit">Register</Button>
+
+          <Button
+            type="submit"
+            className="w-full py-2 text-base hover:bg-blue-700 text-white rounded-md shadow"
+          >
+            Register
+          </Button>
+
         </div>
       </form>
     </div>

@@ -7,6 +7,11 @@ import Provider from './pages/Provider'
 import Navbar from './components/navbar'
 import AboutUs from './pages/AboutUs'
 import Dashboard from './pages/Dashboard'
+import AdminDasboard from './pages/AdminDashboard'
+import UserProfile from './pages/UserProfile'
+// import { useContext } from 'react'
+// import UserContext from './context/User-Context'
+// import { useNavigate } from 'react-router-dom'
 
 import './App.css'
 import { Routes, Route} from "react-router-dom"
@@ -26,6 +31,8 @@ function App() {
           <Route path="/provider" element={<Provider/>} ></Route>
           <Route path='/about' element={<AboutUs/>}></Route>
           <Route path='/dashboard' element={<Dashboard/>}></Route>
+          <Route path='/adminDashboard' element={<AdminDasboard/>}></Route>
+          <Route path='/admin/user/:id' element={<UserProfile/>}></Route>
         </Routes>
       </div>
     </>

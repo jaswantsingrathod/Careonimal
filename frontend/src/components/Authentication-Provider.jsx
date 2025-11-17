@@ -12,6 +12,7 @@ export default function AuthenticationProvider(props) {
     user: null,
     isLoggedIn: false,
     serverError: "",
+    role: ""
   });
 
   const handleRegister = async (formData, resetForm) => {
@@ -31,23 +32,28 @@ export default function AuthenticationProvider(props) {
       const response = await axios.post(`/users/login`, formData);
       const { token, user, users } = response.data;
       localStorage.setItem("token", token);
-      console.log("login",response.data)
+      console.log("login", response.data);
       userDispatch({ type: "LOGIN", payload: user });
-
-      const userRes = await axios.get(`/users/account`, {
-        headers: { Authorization: localStorage.getItem("token") },
-      });
-      console.log("userRes", userRes.data);
-      userDispatch({ type: "LOGIN", payload: userRes.data });
-
+        const userRes = await axios.get("/users/account", {
+          headers: { Authorization: token },
+        });
+        userDispatch({ type: "LOGIN", payload: userRes.data });
       if (user.role === "admin" && users) {
         userDispatch({ type: "SET_USERS", payload: users });
+      }
+      if(user.role == "admin"){
+        navigate('/adminDashboard')
+      }else if(user.role == "user"){
+        navigate('/')
+      }else if(user.role == "provider"){
+        navigate('/provider')
+      }else{
+        navigate('/')
       }
 
       resetForm();
       alert("Successfully Logged in");
       alert(`Welcome ${user.username}`);
-      navigate("/dashboard");
     } catch (err) {
       console.log(err?.response?.data?.error);
       userDispatch({
