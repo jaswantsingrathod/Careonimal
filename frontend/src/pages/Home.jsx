@@ -6,7 +6,7 @@ import {
   Dog,
   Search,
 } from "lucide-react";
-import img from "../assets/pngegg.png";
+import img from "../assets/dog.gif";
 
 export default function Home() {
   return (
@@ -53,7 +53,7 @@ export default function Home() {
             {/* RIGHT IMAGE BOX */}
             <div className="flex justify-center md:justify-end">
               <div className="h-72 w-72 lg:h-80 lg:w-80 bg-orange-100 rounded-[2.5rem] overflow-hidden flex items-end justify-center">
-                <img src={img} className="h-full object-contain" />
+                <img src={img} className="h-full object-cover w-full" />
               </div>
             </div>
           </div>

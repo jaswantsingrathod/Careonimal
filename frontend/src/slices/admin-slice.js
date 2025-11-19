@@ -59,24 +59,27 @@ export const fetchSingleUser = createAsyncThunk(
 );
 
 export const fetchProvider = createAsyncThunk(
-  "admin/fetchProvider", async (undefined, {rejectWithValue}) => {
-    try{
-      const res = await axios.get(`/providers`, {headers: {Authorization: localStorage.getItem("token")}})
+  "admin/fetchProvider",
+  async (undefined, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/providers`, {
+        headers: { Authorization: localStorage.getItem("token") },
+      });
       // console.log("providers",res.data);
-      return res.data
-    }catch(err){
+      return res.data;
+    } catch (err) {
       console.log(err.response.data.error);
-      return rejectWithValue(err.response.data.error)
+      return rejectWithValue(err.response.data.error);
     }
   }
-)
+);
 
 export const fetchSingleProvider = createAsyncThunk(
   "admin/fetchSingleProvider",
   async (id, { rejectWithValue }) => {
     try {
       const res = await axios.get(`/providers/${id}`, {
-        headers: { Authorization: localStorage.getItem("token")},
+        headers: { Authorization: localStorage.getItem("token") },
       });
       console.log(res.data);
       return res.data;
@@ -87,19 +90,34 @@ export const fetchSingleProvider = createAsyncThunk(
   }
 );
 
+export const approveProvider = createAsyncThunk(
+  "admin/approveProvider",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `/provider/approve/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      console.log("update", res.data);
+      return res.data;
+    } catch (err) {
+      console.log("Error:", err.response.data.error);
+      return rejectWithValue(err.response.data.error);
+    }
+  }
+);
+
 /* ---------- HELPERS ---------- */
 
 const normalizeUsers = (payload) => {
-  // API returns an array directly: [ {...}, {...} ]
   if (Array.isArray(payload)) return payload;
-
-  // API returns { users: [ ... ] }
   if (Array.isArray(payload?.users)) return payload.users;
-
-  // API returns { data: [ ... ] }
   if (Array.isArray(payload?.data)) return payload.data;
-
-  // Fallback: nothing usable
   return [];
 };
 
@@ -171,22 +189,22 @@ const adminSlice = createSlice({
         (state.loading = false), (state.error = action.payload);
       });
 
-      // fetch Providers
-      builder
-    .addCase(fetchProvider.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(fetchProvider.fulfilled, (state, action) => {
-      state.loading = false;
-      state.providers = Array.isArray(action.payload)
-        ? action.payload
-        : action.payload?.providers ?? [];
-    })
-    .addCase(fetchProvider.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    });
+    // fetch Providers
+    builder
+      .addCase(fetchProvider.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProvider.fulfilled, (state, action) => {
+        state.loading = false;
+        state.providers = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.providers ?? [];
+      })
+      .addCase(fetchProvider.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
 
     // View Provider
     builder
@@ -201,6 +219,28 @@ const adminSlice = createSlice({
       .addCase(fetchSingleProvider.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      });
+
+    // Approve Provider
+    builder
+      .addCase(approveProvider.pending, (state) => {
+        (state.loading = true), (state.error = null);
+      })
+      .addCase(approveProvider.fulfilled, (state, action) => {
+        state.loading = false;
+        const updated = action.payload?.provider ?? action.payload ?? null;
+        state.approving = false;
+        if (updated && updated._id) {
+          state.providers = state.providers.map((p) =>
+            p._id === updated._id ? updated : p
+          );
+          if (state.selectedProvider?._id === updated._id) {
+            state.selectedProvider = updated;
+          }
+        }
+      })
+      .addCase(approveProvider.rejected, (state, action) => {
+        (state.loading = false), (state.error = action.payload);
       });
   },
 });

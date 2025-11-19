@@ -31,24 +31,6 @@ export default function Navbar() {
               Admin Panel
             </Link>
           </div>
-
-          {/* RIGHT */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="text-neutral-300 hover:text-white hover:bg-neutral-800"
-              onClick={navigateToAdminSettings}
-            >
-              ⚙ Settings
-            </Button>
-
-            <Button
-              className="bg-red-600 hover:bg-red-700"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          </div>
         </div>
       </header>
     );

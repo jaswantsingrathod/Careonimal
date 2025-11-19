@@ -10,6 +10,8 @@ import Dashboard from './pages/Dashboard'
 import AdminDasboard from './pages/AdminDashboard'
 import UserProfile from './pages/UserProfile'
 import ProviderProfile from './pages/ProviderProfile'
+import ProviderList from './pages/ProviderList'
+import UsersList from './pages/UsersList'
 
 import './App.css'
 import { Routes, Route} from "react-router-dom"
@@ -35,6 +37,8 @@ function App() {
           <Route path='/adminDashboard' element={<AdminDasboard/>}></Route>
           <Route path='/admin/user/:id' element={<UserProfile/>}></Route>
           <Route path='/admin/provider/:id' element={<ProviderProfile/>}></Route>
+          <Route path='/admin/users/list' element={<UsersList/>}></Route>
+          <Route path='/admin/providers/list' element={<ProviderList/>}></Route>
         </Routes>
       </div>
     </>
