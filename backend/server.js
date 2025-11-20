@@ -32,7 +32,7 @@ app.post('/users/register', UserController.register)
 app.post('/users/login', UserController.login)
 // Protected routes 
 app.get('/users',authenticateUser,authorizeUser(["admin"]), UserController.list)
-app.get('/users/account', authenticateUser,authorizeUser(["admin", "user"]),UserController.account)
+app.get('/users/account', authenticateUser,UserController.account)
 app.get('/users/:id', authenticateUser, authorizeUser(["admin"]), UserController.singleAccount)
 app.put('/user/account/update/:id', authenticateUser,authorizeUser(["admin", "user"]), UserController.modify)
 app.delete('/user/account/delete/:id', authenticateUser, authorizeUser(["admin"]), UserController.remove)
