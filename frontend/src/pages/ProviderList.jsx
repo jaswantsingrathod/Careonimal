@@ -1,8 +1,17 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, deleteUser, setSelectedProvider, fetchProvider } from "../slices/admin-slice";
+import {
+  fetchUsers,
+  deleteUser,
+  setSelectedProvider,
+  fetchProvider,
+} from "../slices/admin-slice";
 import { Eye, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import {
   Table,
@@ -14,95 +23,192 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+import { toast } from "react-toastify";
+
 export default function ProviderList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { users = [], loading, providers = [] } = useSelector((state) => state.admin);
+  const { users = [], loading, providers = [] } = useSelector(
+    (state) => state.admin
+  );
 
   useEffect(() => {
     dispatch(fetchProvider());
-    dispatch(fetchUsers())
+    dispatch(fetchUsers());
   }, [dispatch]);
 
-  const handleDelete = (id) => {
-    const ok = window.confirm("Are you sure?");
-    if (!ok) return;
-    dispatch(deleteUser(id));
+  // Confirm delete → delete → toast → refresh
+  const handleDeleteConfirmed = (id) => {
+    dispatch(deleteUser(id))
+      .then(() => {
+        toast.success("User deleted successfully");
+        dispatch(fetchUsers());
+        dispatch(fetchProvider());
+      })
+      .catch((err) => {
+        toast.error(err?.message || "Delete failed");
+      });
   };
 
   const handleView = (ele) => {
-  const provider = providers.find((p) => p.user?._id === ele._id);
-  if (!provider) {
-    alert("This provider has not completed their provider profile.");
-    return;
-  }
-  dispatch(setSelectedProvider(provider));
-  navigate(`/admin/provider/${provider._id}`);
-};
+    const provider = providers.find((p) => p.user?._id === ele._id);
+    if (!provider) {
+      toast.info("This provider has not completed their profile.");
+      return;
+    }
+    dispatch(setSelectedProvider(provider));
+    navigate(`/admin/provider/${provider._id}`);
+  };
 
-  // ➜ ONLY USERS WITH ROLE == "provider"
   const filteredUsers = users.filter((ele) => ele.role === "provider");
 
   return (
-    <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Username</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Joined</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Action</TableHead>
-          </TableRow>
-        </TableHeader>
+    <Card className="w-full shadow-sm rounded-2xl border border-slate-200">
+      <CardHeader>
+        <CardTitle className="text-lg font-bold text-center text-slate-800">
+          Providers List
+        </CardTitle>
+      </CardHeader>
 
-        <TableBody>
-          {!loading && filteredUsers.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={5} className="py-6 text-center text-slate-500">
-                No users found.
-              </TableCell>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow className="text-sm text-slate-600">
+              <TableHead className="w-[120px]">Username</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead className="hidden md:table-cell">Role</TableHead>
+              <TableHead className="hidden lg:table-cell">Joined</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
-          )}
+          </TableHeader>
 
-          {filteredUsers.map((ele) => (
-            <TableRow key={ele._id}>
-              <TableCell className="font-medium">{ele.username}</TableCell>
-              <TableCell>{ele.email}</TableCell>
-              <TableCell>{ele.role}</TableCell>
-              <TableCell>
-                {ele.createdAt ? new Date(ele.createdAt).toLocaleDateString() : "—"}
-              </TableCell>
-               <TableCell>
-                  {providers?.approvedByAdmin ? (
-                    <span className="text-emerald-600 font-medium">Approved</span>
-                  ) : (
-                    <span className="text-amber-600 font-medium">Pending</span>
-                  )}
+          <TableBody>
+            {!loading && filteredUsers.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="py-6 text-center text-slate-500"
+                >
+                  No providers found.
                 </TableCell>
-              <TableCell className="flex items-center justify-end gap-2">
-                <button
-                  onClick={() => handleView(ele)}
-                  className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
-                >
-                  <Eye />
-                </button>
+              </TableRow>
+            )}
 
-                <button
-                  onClick={() => handleDelete(ele._id)}
-                  className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition"
-                >
-                  <Trash />
-                </button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+            {filteredUsers.map((ele) => {
+              const provider = providers.find(
+                (p) => p.user?._id === ele._id
+              );
 
-        <TableFooter />
-      </Table>
-    </div>
+              return (
+                <TableRow
+                  key={ele._id}
+                  className="hover:bg-slate-50 transition"
+                >
+                  <TableCell className="font-medium">
+                    {ele.username}
+                  </TableCell>
+
+                  <TableCell>{ele.email}</TableCell>
+
+                  <TableCell className="hidden md:table-cell">
+                    {ele.role}
+                  </TableCell>
+
+                  <TableCell className="hidden lg:table-cell">
+                    {ele.createdAt
+                      ? new Date(ele.createdAt).toLocaleDateString()
+                      : "—"}
+                  </TableCell>
+
+                  <TableCell>
+                    {provider ? (
+                      provider.approvedByAdmin ? (
+                        <Badge variant="secondary" 
+                         className="text-[11px] border-emerald-100 bg-emerald-50 text-emerald-700"
+                        >
+                          Verified</Badge>
+                      ) : (
+                        <Badge variant="outline" 
+                        className="text-[11px] border-red-100 bg-red-50 text-red-700"
+                        >
+                          Pending</Badge>
+                      )
+                    ) : (
+                      <span className="text-xs text-slate-500">
+                        No profile
+                      </span>
+                    )}
+                  </TableCell>
+
+                  <TableCell className="flex items-center justify-end gap-2">
+                    {/* VIEW */}
+                    <Button
+                      className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
+                      onClick={() => handleView(ele)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+
+                    {/* DELETE with shadcn dialog */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="sm:max-w-sm">
+                        <DialogHeader>
+                          <DialogTitle>Delete user?</DialogTitle>
+                          <DialogDescription>
+                            This will permanently delete{" "}
+                            <b>{ele.username}</b>. as Provider
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <DialogFooter className="pt-4 flex justify-end gap-2">
+                          <DialogClose asChild>
+                            <Button variant="outline" size="sm">
+                              Cancel
+                            </Button>
+                          </DialogClose>
+
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() =>
+                              handleDeleteConfirmed(ele._id)
+                            }
+                          >
+                            Delete
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+
+          <TableFooter />
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

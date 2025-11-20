@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   // Sidebar click handlers (minimal — no extra features)
   const goUsers = () => navigate("/admin/users/list");
   const goProviders = () => navigate("/admin/providers/list");
-  const goProfile = () => navigate("/profile");
+  const goProfile = () => navigate("/admin/profile");
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 cursor-pointer">
@@ -82,11 +82,7 @@ export default function AdminDashboard() {
         <aside className="w-64 bg-white border border-slate-200 rounded-lg overflow-hidden sticky top-6">
           <div className="p-4">
             {/* PROFILE CHIP - shadcn Avatar */}
-            <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate("/profile")}
-              role="button"
-            >
+            <div>
               <div>
                 <div className="text-sm font-semibold">
                   {"Admin"}

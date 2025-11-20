@@ -1,7 +1,6 @@
-// src/pages/ProviderProfile.jsx
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogTrigger,

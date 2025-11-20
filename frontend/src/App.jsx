@@ -12,6 +12,7 @@ import UserProfile from './pages/UserProfile'
 import ProviderProfile from './pages/ProviderProfile'
 import ProviderList from './pages/ProviderList'
 import UsersList from './pages/UsersList'
+import AdminProfile from './pages/AdminProfile'
 
 import './App.css'
 import { Routes, Route} from "react-router-dom"
@@ -39,6 +40,7 @@ function App() {
           <Route path='/admin/provider/:id' element={<ProviderProfile/>}></Route>
           <Route path='/admin/users/list' element={<UsersList/>}></Route>
           <Route path='/admin/providers/list' element={<ProviderList/>}></Route>
+          <Route path='/admin/profile' element={<AdminProfile/>}></Route>
         </Routes>
       </div>
     </>
