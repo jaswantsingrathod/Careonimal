@@ -3,9 +3,8 @@ import { useEffect, useReducer } from "react";
 import UserReducer from "../reducer/UserReducer";
 import axios from "../config/axios";
 import { useNavigate } from "react-router-dom";
-import {toast} from "react-toastify"
+import { toast } from "react-toastify";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AuthenticationProvider(props) {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ export default function AuthenticationProvider(props) {
     user: null,
     isLoggedIn: false,
     serverError: "",
-    role: ""
+    role: "",
   });
 
   const handleRegister = async (formData, resetForm) => {
@@ -30,31 +29,26 @@ export default function AuthenticationProvider(props) {
 
   const handleLogin = async (formData, resetForm) => {
     try {
-      const response = await axios.post(`/users/login`, formData);
-      const { token, user, users } = response.data;
-      localStorage.setItem("token", token);
-      console.log("login", response.data);
+      const response = await axios.post("/users/login", formData);
+      localStorage.setItem("token", response.data.token);
+
+      // attach raw token to axios instance
+      // now this will be authorized
+      const userRes = await axios.get("/users/account", {headers: {Authorization: localStorage.getItem("token")}});
+      const user = userRes.data;
+
       userDispatch({ type: "LOGIN", payload: user });
-        const userRes = await axios.get("/users/account", {
-          headers: { Authorization: token },
-        });
-        userDispatch({ type: "LOGIN", payload: userRes.data });
-      if (user.role === "admin" && users) {
-        userDispatch({ type: "SET_USERS", payload: users });
-      }
-      if(user.role == "admin"){
-        navigate('/adminDashboard')
-      }else if(user.role == "user"){
-        navigate('/')
-      }else if(user.role == "provider"){
-        navigate('/provider')
-      }else{
-        navigate('/')
+
+      if (user.role === "admin") {
+        navigate("/adminDashboard");
+      } else if (user.role === "provider") {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
       }
 
       resetForm();
       toast.success("Successfully Logged in");
-      // alert(`Welcome ${user.username}`);
     } catch (err) {
       console.log(err?.response?.data?.error);
       userDispatch({

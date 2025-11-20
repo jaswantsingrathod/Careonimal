@@ -3,9 +3,6 @@ const UserReducer = (state, action) => {
         case "LOGIN": {
             return{ ...state, isLoggedIn: true, user: action.payload, serverError: ""}
         }
-        case "SET_USERS": {
-            return {...state, users: action.payload, serverError: ""}
-        }
         case "SERVER_ERRORS": {
             return {...state, serverError: action.payload}
         }

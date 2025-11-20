@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import UserContext from "@/context/User-Context";
 import img from "../assets/careonimallogo.png";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const { isLoggedIn, handleLogout, user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   // ADMIN NAVBAR — darker & premium
   if (user?.role === "admin") {
@@ -54,7 +55,30 @@ export default function Navbar() {
             <NavItem to="/">Home</NavItem>
             <NavItem to="/contact">Contact</NavItem>
             <NavItem to="/about">About Us</NavItem>
-            <NavItem to="/provider">Become a Provider</NavItem>
+
+            {/* Become a Provider — custom handler */}
+            {user?.role !== "provider" && (
+              <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <button
+                  onClick={() => {
+                    // if not logged in → go to register, else go to become-provider
+                    if (!isLoggedIn) navigate("/login");
+                    else navigate("/provider");
+                  }}
+                  className="
+                    relative text-sm text-neutral-700 hover:text-black transition 
+                    after:absolute after:left-0 after:-bottom-1 after:h-[1.5px]
+                    after:w-0 after:bg-neutral-900 after:transition-all after:duration-300
+                    hover:after:w-full
+                    bg-transparent border-0 p-0
+                  "
+                >
+                  Become a Provider
+                </button>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -109,9 +133,4 @@ function NavItem({ to, children }) {
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
-}
-
-
-function navigateToAdminSettings() {
-  window.location.href = "/admin/settings";
 }

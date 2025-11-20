@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { createProvider } from "../slices/Provider-slice";
+import { Link } from "react-router-dom";
 import { useContext } from "react";
 import UserContext from "../context/User-Context";
 // shadcn/ui (keeps the style consistent with your app)
@@ -155,7 +156,6 @@ export default function ProviderForm() {
           <CardHeader>
             <CardTitle className="text-lg">Provider Registration</CardTitle>
             <CardDescription className="text-xs">
-              Small form matching Provider model
             </CardDescription>
           </CardHeader>
 
@@ -446,6 +446,15 @@ export default function ProviderForm() {
                 </form>
               )}
             </Formik>
+            <p className="mt-1 text-[11px] text-center text-slate-500">
+              Don&apos;t have an account?{" "}
+              <Link
+                to="/register"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Create Account
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>
