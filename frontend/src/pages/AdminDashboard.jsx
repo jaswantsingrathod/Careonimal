@@ -162,7 +162,8 @@ export default function AdminDashboard() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <Card className="h-24 w-full sm:w-auto p-2">
+              <div onClick={() => navigate("/admin/users/list")}>
+                <Card className="h-24 w-full sm:w-auto p-2">
                 <CardHeader>
                   <CardTitle className="text-sm">
                     <div className="flex flex-row justify-center items-center   gap-2">
@@ -172,13 +173,15 @@ export default function AdminDashboard() {
                   </CardTitle>
                   <CardContent>
                     <div className="text-2xl font-bold text-center">
-                      {loading ? "—" : totalUsers}
+                      {totalUsers}
                     </div>
                   </CardContent>
                 </CardHeader>
               </Card>
+              </div>
 
-              <Card className="h-24 w-full sm:w-auto p-2">
+              <div onClick={() => navigate("/admin/providers/list")}>
+                <Card className="h-24 w-full sm:w-auto p-2">
                 <CardHeader>
                   <CardTitle className="text-sm">
                     <div className="flex flex-row justify-center items-center gap-2">
@@ -188,11 +191,12 @@ export default function AdminDashboard() {
                   </CardTitle>
                   <CardContent>
                     <div className="text-2xl font-bold text-center">
-                      {loading ? "—" : totalProviders}
+                      {totalProviders}
                     </div>
                   </CardContent>
                 </CardHeader>
               </Card>
+              </div>
 
               <Card className="h-24 w-full sm:w-auto p-2">
                 <CardHeader>
