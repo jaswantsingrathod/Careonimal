@@ -1,6 +1,6 @@
-// src/store/providerSlice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../config/axios";
+import { useNavigate } from "react-router-dom";
 
 export const createProvider = createAsyncThunk(
   "provider/createProvider",
@@ -9,7 +9,6 @@ export const createProvider = createAsyncThunk(
     try {
       const res = await axios.post("/providers/register", formData, {headers: {Authorization: localStorage.getItem("token")}});
       console.log("provider", res.data);
-      
       return res.data; // whatever backend returns
     } catch (err) {
       // safe error extraction
@@ -25,14 +24,12 @@ const providerSlice = createSlice({
     provider: [],
     loading: false,
     error: null,
-    success: null,
   },
   reducers: {
     clearProviderState(state) {
       state.provider = null;
       state.loading = false;
       state.error = null;
-      state.success = null;
     },
   },
   extraReducers: (builder) => {
@@ -40,12 +37,10 @@ const providerSlice = createSlice({
       .addCase(createProvider.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = null;
       })
       .addCase(createProvider.fulfilled, (state, action) => {
         state.loading = false;
         state.provider = action.payload;
-        state.success = "Provider created";
       })
       .addCase(createProvider.rejected, (state, action) => {
         state.loading = false;

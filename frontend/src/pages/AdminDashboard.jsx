@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   const goProfile = () => navigate("/admin/profile");
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 cursor-pointer">
+    <div className="min-h-screen  p-6 cursor-pointer">
       <div className="max-w-7xl mx-auto flex gap-6">
         <aside className="w-64 bg-white border border-slate-200 rounded-lg overflow-hidden sticky top-6">
           <div className="p-4">

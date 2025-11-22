@@ -49,7 +49,7 @@ export const fetchSingleUser = createAsyncThunk(
       const res = await axios.get(`/users/${id}`, {
         headers: { Authorization: localStorage.getItem("token") },
       });
-      console.log("view", res.data);
+      // console.log("view", res.data);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -111,6 +111,16 @@ export const approveProvider = createAsyncThunk(
     }
   }
 );
+
+export const deleteProvider = createAsyncThunk(
+  "admin/deleteProvider", async (id, {rejectWithValue}) => {
+    try{
+      const res = await axios.delete()
+    }catch(err){
+
+    }
+  }
+)
 
 /* ---------- HELPERS ---------- */
 

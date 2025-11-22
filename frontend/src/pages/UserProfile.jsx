@@ -21,13 +21,11 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { selectedUser, loading, error } = useSelector(
-    (state) => state.admin
-  );
+  const { selectedUser, loading, error } = useSelector((state) => state.admin);
 
   useEffect(() => {
-      dispatch(fetchSingleUser(id));
-  },[]);
+    dispatch(fetchSingleUser(id));
+  }, []);
 
   const ele = selectedUser;
 
@@ -63,9 +61,7 @@ export default function UserProfile() {
     );
   }
 
-  const initials = (ele.username)
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = ele.username.slice(0, 2).toUpperCase();
 
   const joined = ele.createdAt
     ? new Date(ele.createdAt).toLocaleDateString()
@@ -106,11 +102,12 @@ export default function UserProfile() {
         {/* back button */}
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
+          className="w-full justify-start text-xs"
           onClick={() => navigate(-1)}
-          className="h-8 w-8 text-slate-600 hover:text-slate-900"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Go back
         </Button>
 
         {/* MAIN CARD */}

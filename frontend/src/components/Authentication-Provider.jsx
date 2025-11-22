@@ -32,8 +32,6 @@ export default function AuthenticationProvider(props) {
       const response = await axios.post("/users/login", formData);
       localStorage.setItem("token", response.data.token);
 
-      // attach raw token to axios instance
-      // now this will be authorized
       const userRes = await axios.get("/users/account", {headers: {Authorization: localStorage.getItem("token")}});
       const user = userRes.data;
 
@@ -61,7 +59,7 @@ export default function AuthenticationProvider(props) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     userDispatch({ type: "LOGOUT" });
-    navigate("/login");
+    navigate("/");
   };
 
   useEffect(() => {

@@ -26,7 +26,7 @@ function App() {
   return (
     <>
     <ToastContainer position="top-right" theme="colored" autoClose={2000} />
-      <div>
+      <div className='py-5 items-center pt-20'>
         <Navbar/>
         <Routes>
           <Route path="/" element={<Home/>}></Route>

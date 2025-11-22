@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUsers, deleteUser, fetchSingleUser } from "../slices/admin-slice";
-import { Eye, Trash } from "lucide-react";
+import { Eye, Trash, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // shadcn UI
@@ -67,8 +67,17 @@ export default function UsersList() {
   const filteredUsers = (users || []).filter((ele) => ele.role === "user");
 
   return (
-    <Card className="w-full shadow-sm rounded-2xl border border-slate-200">
+    <Card className="w-[90%] fixed left-[65px] z-20 shadow-sm rounded-2xl border border-slate-200">
       <CardHeader>
+        <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-xs"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go back
+            </Button>
         <CardTitle className="text-lg font-bold text-slate-800 text-center">Users</CardTitle>
       </CardHeader>
 
