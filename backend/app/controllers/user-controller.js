@@ -4,6 +4,7 @@ import { sendMail } from "../../utils/sendMail.js";
 import User from "../models/user-model.js";
 const UserController = {};
 import { userLoginValidation, userRegisterValidation } from "../validations/user-validation.js";
+import Provider from "../models/provider-models.js";
 
 UserController.register = async (req, res) => {
   const body = req.body;
@@ -148,6 +149,9 @@ UserController.remove = async (req, res) => {
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ error: 'User not found' });
+    }
+    if(deletedUser.role == "provider"){
+      await Provider.findOneAndDelete({user: deletedUser._id})
     }
     res.status(200).json("account deleted successfully");
   } catch (err) {

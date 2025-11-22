@@ -32,14 +32,10 @@ const providerSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    address: {
+    location: {
       latitude: { type: Number, required: true },
-      longitude: { type: Number, required: true }
-    },
-    city: {
-      type: String,
-      required: true,
-      trim: true
+      longitude: { type: Number, required: true },
+      address: String
     },
     priceRange: {
       type: String,

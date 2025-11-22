@@ -9,12 +9,12 @@ export const providerValidation = Joi.object({
 
   description: Joi.string().max(300).allow("", null),
 
-  address: Joi.object({
+  location: Joi.object({
     latitude: Joi.number().required().min(-90).max(90),
-    longitude: Joi.number().required().min(-180).max(180)
+    longitude: Joi.number().required().min(-180).max(180),
+    address: Joi.string().min(3).max(255).optional(),
   }).required(),
 
-  city: Joi.string().required(),
 
   priceRange: Joi.string().allow("", null),
 
@@ -53,7 +53,7 @@ export const providerUpdateValidation = Joi.object({
   description: Joi.string().max(300).allow("", null),
 
   //  keep same structure for address (not string)
-  address: Joi.object({
+  location: Joi.object({
     latitude: Joi.number().min(-90).max(90),
     longitude: Joi.number().min(-180).max(180)
   }),
