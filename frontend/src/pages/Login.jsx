@@ -34,7 +34,7 @@ export default function Login() {
   }, [serverError]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col justify-center items-center bg-slate-100 px-4">
+    <div className="w-full min-h-screen flex flex-col justify-center items-center  px-4">
       <div className="w-120 h-screen p-20">
         {/* Heading */}
         <h2 className="text-center text-xl font-bold text-slate-900 mb-4">
@@ -83,7 +83,7 @@ export default function Login() {
 
             {/* Link */}
             <p className="mt-1 text-[11px] text-center text-slate-500">
-              Don&apos;t have an account?{" "}
+              Don't have an account?{" "}
               <Link
                 to="/register"
                 className="text-blue-600 hover:underline font-medium"

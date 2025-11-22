@@ -19,10 +19,17 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  // Helper to get dashboard path based on role
+  const dashboardPath = () => {
+    if (user?.role === "admin") return "/adminDashboard";
+    if (user?.role === "provider") return "/provider/dashboard";
+    return "/dashboard";
+  };
+
   //  ADMIN NAVBAR 
   if (user?.role === "admin") {
     return (
-      <nav className="w-[90%] fixed left-[65px] top-2 z-20 bg-neutral-600 rounded-lg text-neutral-200 border-b border-neutral-800">
+      <nav className="w-[95%] fixed left-[30px] top-2 z-20 bg-neutral-600 rounded-lg text-neutral-200 border-b border-neutral-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
             <Link
               to="/adminDashboard"
@@ -55,7 +62,7 @@ export default function Navbar() {
     );
   }
 
-  //  USER NAVBAR — Fully Responsive
+  //  USER / PROVIDER NAVBAR — Fully Responsive
   return (
     <>
     <header className="w-[94%] rounded-lg backdrop-blur-md bg-gray-150  shadow-2xl fixed top-2 left-9  z-20">
@@ -107,8 +114,12 @@ export default function Navbar() {
             </Button>
           ) : (
             <>
-              <Button asChild variant="ghost" className="text-neutral-700 hover:text-black">
-                <Link to="/dashboard">Dashboard</Link>
+              <Button
+                asChild
+                variant="ghost"
+                className="text-neutral-700 hover:text-black"
+              >
+                <Link to={dashboardPath()}>Dashboard</Link>
               </Button>
 
               <Button onClick={handleLogout} className="bg-red-500 hover:bg-red-600">
@@ -154,7 +165,7 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <>
-                    <button onClick={() => { setOpen(false); navigate("/dashboard"); }}>
+                    <button onClick={() => { setOpen(false); navigate(dashboardPath()); }}>
                       Dashboard
                     </button>
                     <button

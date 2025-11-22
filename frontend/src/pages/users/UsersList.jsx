@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, deleteUser, fetchSingleUser } from "../slices/admin-slice";
+import { fetchUsers, deleteUser, fetchSingleUser } from "../../slices/admin-slice";
 import { Eye, Trash, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

@@ -45,7 +45,7 @@ export default function Register() {
   }, [userDispatch]);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 px-4">
+    <div className="min-h-screen w-full flex items-center justify-center px-4">
       <div className="w-100 h-screen p-10">
         
         {/* Header */}

@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   PawPrint,
@@ -12,10 +11,10 @@ import Footer from "../components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen w-full bg-white px-4 py-10 flex items-start justify-center">
+    <main className="min-h-screen w-full bg-white px-4  flex items-start justify-center">
       <div className="w-full max-w-6xl">
         {/* HERO CARD */}
-        <section className="bg-white rounded-2xl shadow-lg border border-orange-100 overflow-hidden">
+        <section className="bg-white rounded-2xl shadow-lg border border-orange-50 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center px-6 lg:px-10 pt-8 pb-6">
             {/* LEFT */}
             <div className="space-y-6 md:pr-6">

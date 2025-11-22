@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-12 pb-8">
 
           <div>
-            <img className="h-60 w-auto ps-14" src={logoImg} alt="OnTheSpotX Logo" />
+            <img className="h-60 w-auto ps-14" src={logoImg} alt="Careonimal Logo" />
           </div>
 
           <div className='text-gray-800'>

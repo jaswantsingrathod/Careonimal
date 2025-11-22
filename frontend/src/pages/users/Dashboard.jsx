@@ -1,6 +1,8 @@
-import { useContext, useReducer } from "react";
-import UserContext from "../context/User-Context";
-import axios from "../config/axios";
+import { useContext, useReducer, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import UserContext from "../../context/User-Context";
+import axios from "../../config/axios";
+import { toast } from "react-toastify";
 
 // shadcn components
 import {
@@ -46,6 +48,17 @@ function reducer(state, action) {
 export default function Dashboard() {
   const { user, userDispatch } = useContext(UserContext);
   const [state, dispatch] = useReducer(reducer, initialState);
+  const navigate = useNavigate();
+
+  // If a provider or admin hits this route, redirect them automatically
+  useEffect(() => {
+    if (!user) return; // still loading — do nothing
+    if (user.role === "provider") {
+      navigate("/provider/dashboard", { replace: true });
+    } else if (user.role === "admin") {
+      navigate("/adminDashboard", { replace: true });
+    }
+  }, [user]);
 
   const openEditForUser = () => {
     const digits = (user.phone || "").replace(/\D/g, "").slice(-10);
@@ -60,34 +73,32 @@ export default function Dashboard() {
   };
 
   const handleEdit = async (id, updatedData) => {
-  const digits = (updatedData.phone || "").replace(/\D/g, "");
-  if (digits.length !== 10) {
-    alert("Phone number must be exactly 10 digits");
-    return;
-  }
-  // backend expects +91XXXXXXXXXX
-  const phoneToSend = `+91${digits}`;
-  const payload = { ...updatedData, phone: phoneToSend };
-  try {
-    dispatch({ type: "SET_SAVING", payload: true });
-    const response = await axios.put(
-      `/user/account/update/${id}`,
-      payload,
-      { headers: { Authorization: localStorage.getItem("token") } }
-    );
-    // assuming response.data is the updated user
-    userDispatch({ type: "LOGIN", payload: response.data });
-    dispatch({ type: "CLOSE_EDIT" });
-    alert("User updated successfully!");
-  } catch (err) {
-    // console.log("Update failed:", err?.response?.data?.error || err.message);
-    alert(err?.response?.data?.error || "Update failed");
-  } finally {
-    dispatch({ type: "SET_SAVING", payload: false });
-  }
-};
+    const digits = (updatedData.phone || "").replace(/\D/g, "");
+    if (digits.length !== 10) {
+      alert("Phone number must be exactly 10 digits");
+      return;
+    }
+    const phoneToSend = `+91${digits}`;
+    const payload = { ...updatedData, phone: phoneToSend };
+    try {
+      dispatch({ type: "SET_SAVING", payload: true });
+      const response = await axios.put(
+        `/user/account/update/${id}`,
+        payload,
+        { headers: { Authorization: localStorage.getItem("token") } }
+      );
+      // assuming response.data is the updated user
+      userDispatch({ type: "LOGIN", payload: response.data });
+      dispatch({ type: "CLOSE_EDIT" });
+      toast.success("User updated successfully!");
+    } catch (err) {
+      alert(err?.response?.data?.error || "Update failed");
+    } finally {
+      dispatch({ type: "SET_SAVING", payload: false });
+    }
+  };
 
-
+  // show loading while user is being fetched
   if (!user)
     return (
       <div className="flex justify-center items-center min-h-screen text-gray-500">
@@ -95,6 +106,11 @@ export default function Dashboard() {
       </div>
     );
 
+  if (user.role !== "user") {
+    return null;
+  }
+
+  // normal user dashboard below
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <Card>

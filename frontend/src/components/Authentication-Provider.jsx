@@ -40,7 +40,7 @@ export default function AuthenticationProvider(props) {
       if (user.role === "admin") {
         navigate("/adminDashboard");
       } else if (user.role === "provider") {
-        navigate("/dashboard");
+        navigate("/provider/dashboard");
       } else {
         navigate("/");
       }
@@ -59,6 +59,7 @@ export default function AuthenticationProvider(props) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     userDispatch({ type: "LOGOUT" });
+    toast.success("Logged out")
     navigate("/");
   };
 
