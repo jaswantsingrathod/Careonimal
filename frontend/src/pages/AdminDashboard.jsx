@@ -25,6 +25,16 @@ import UserContext from "../context/User-Context";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
@@ -84,9 +94,7 @@ export default function AdminDashboard() {
             {/* PROFILE CHIP - shadcn Avatar */}
             <div>
               <div>
-                <div className="text-sm font-semibold">
-                  {"Admin"}
-                </div>
+                <div className="text-sm font-semibold">{"Admin"}</div>
                 <div className="text-xs text-slate-500 flex items-center gap-2">
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
                   <span>Online</span>
@@ -125,13 +133,40 @@ export default function AdminDashboard() {
                 </button>
 
                 <div className="mt-2 border-t border-slate-100 pt-2">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50"
-                  >
-                    <LogOut />
-                    <span>Logout</span>
-                  </button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50">
+                        <LogOut />
+                        <span>Logout</span>
+                      </button>
+                    </DialogTrigger>
+
+                    <DialogContent className="max-w-sm">
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">
+                          Logout?
+                        </DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to logout?
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <DialogFooter className="flex justify-end gap-2">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+
+                        <DialogClose asChild>
+                          <Button
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={handleLogout}
+                          >
+                            Logout
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </nav>
             </ScrollArea>
@@ -160,38 +195,38 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div onClick={() => navigate("/admin/users/list")}>
                 <Card className="h-24 w-full sm:w-auto p-2">
-                <CardHeader>
-                  <CardTitle className="text-sm">
-                    <div className="flex flex-row justify-center items-center   gap-2">
-                      <Users className="h-7 w-5 text-blue-600" />
-                      <span>Total Users</span>
-                    </div>
-                  </CardTitle>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-center">
-                      {totalUsers}
-                    </div>
-                  </CardContent>
-                </CardHeader>
-              </Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      <div className="flex flex-row justify-center items-center   gap-2">
+                        <Users className="h-7 w-5 text-blue-600" />
+                        <span>Total Users</span>
+                      </div>
+                    </CardTitle>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-center">
+                        {totalUsers}
+                      </div>
+                    </CardContent>
+                  </CardHeader>
+                </Card>
               </div>
 
               <div onClick={() => navigate("/admin/providers/list")}>
                 <Card className="h-24 w-full sm:w-auto p-2">
-                <CardHeader>
-                  <CardTitle className="text-sm">
-                    <div className="flex flex-row justify-center items-center gap-2">
-                      <PawPrint className="h-7 w-5 text-green-600" />
-                      <span>Total Providers</span>
-                    </div>
-                  </CardTitle>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-center">
-                      {totalProviders}
-                    </div>
-                  </CardContent>
-                </CardHeader>
-              </Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">
+                      <div className="flex flex-row justify-center items-center gap-2">
+                        <PawPrint className="h-7 w-5 text-green-600" />
+                        <span>Total Providers</span>
+                      </div>
+                    </CardTitle>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-center">
+                        {totalProviders}
+                      </div>
+                    </CardContent>
+                  </CardHeader>
+                </Card>
               </div>
 
               <Card className="h-24 w-full sm:w-auto p-2">

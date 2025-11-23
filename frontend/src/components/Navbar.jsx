@@ -29,7 +29,7 @@ export default function Navbar() {
   //  ADMIN NAVBAR 
   if (user?.role === "admin") {
     return (
-      <nav className="w-[95%] fixed left-[30px] top-2 z-20 bg-neutral-600 rounded-lg text-neutral-200 border-b border-neutral-800">
+      <nav className="w-[95%] fixed left-[31px] top-2 z-20 rounded-lg backdrop-blur-md bg-gray-150 shadow-2xl text-black border-b">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
             <Link
               to="/adminDashboard"
@@ -65,7 +65,7 @@ export default function Navbar() {
   //  USER / PROVIDER NAVBAR — Fully Responsive
   return (
     <>
-    <header className="w-[94%] rounded-lg backdrop-blur-md bg-gray-150  shadow-2xl fixed top-2 left-9  z-20">
+    <header className="w-[94%] rounded-lg backdrop-blur-md bg-gray-150 shadow-2xl fixed top-2 left-9  z-20">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
 
         {/* LOGO */}
