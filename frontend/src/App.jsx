@@ -48,7 +48,7 @@ function App() {
       />
       <div className="py-5 items-center pt-18">
         <Navbar />
-        <Skeleton/>
+        {/* <Skeleton/> */}
         <ScrollToTop/>
         <Routes>
           <Route path="/" element={<Home />}></Route>
