@@ -55,10 +55,20 @@ export default function Navbar() {
       <header className="w-[94%] rounded-lg font-semibold backdrop-blur-md bg-gray-150 shadow-2xl fixed top-2 left-9 z-20">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
           {/* LOGO */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="Careonimal" className="h-10 w-auto" />
-              {/* <span className="text-lg font-semibold text-neutral-800">Careonimal</span> */}
+              <img src={logo} alt="Careonimal" className="h-8 w-auto" />
+
+              {/* 𝓒𝓪𝓻𝓮𝓸𝓷𝓲𝓶𝓪𝓵 */}
+              <div>
+                <span className="text-lg font-semibold text-orange-600">
+                𝓒𝓪𝓻𝓮
+              </span>
+              <span className="text-lg font-semibold text-orange-500">𝓸</span>
+              <span className="text-lg font-semibold text-orange-600">
+                𝓷𝓲𝓶𝓪𝓵
+              </span>
+              </div>
             </Link>
           </div>
 
@@ -71,7 +81,7 @@ export default function Navbar() {
                 <NavItem to="/about">About Us</NavItem>
 
                 {/* Become a Provider: show only to users who are NOT provider and NOT admin */}
-                {(user?.role !== "provider" && user?.role !== "admin") && (
+                {user?.role !== "provider" && user?.role !== "admin" && (
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <button
@@ -84,7 +94,7 @@ export default function Navbar() {
                           after:w-0 after:bg-neutral-900 after:transition-all after:duration-300
                           hover:after:w-full bg-transparent border-0 p-0"
                       >
-                        Become a Provider
+                        Offer Pet Care
                       </button>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -135,7 +145,10 @@ export default function Navbar() {
                     {/* Admin: also show admin-specific links (if desired) */}
                     {user?.role === "admin" && (
                       <DropdownMenuItem asChild>
-                        <Link to="/adminDashboard" className="block px-2 py-1 text-sm hover:bg-neutral-100 rounded">
+                        <Link
+                          to="/adminDashboard"
+                          className="block px-2 py-1 text-sm hover:bg-neutral-100 rounded"
+                        >
                           Admin Panel
                         </Link>
                       </DropdownMenuItem>
@@ -152,8 +165,12 @@ export default function Navbar() {
 
                         <DialogContent className="max-w-sm">
                           <DialogHeader>
-                            <DialogTitle className="text-lg font-semibold">Logout?</DialogTitle>
-                            <DialogDescription>Are you sure you want to logout?</DialogDescription>
+                            <DialogTitle className="text-lg font-semibold">
+                              Logout?
+                            </DialogTitle>
+                            <DialogDescription>
+                              Are you sure you want to logout?
+                            </DialogDescription>
                           </DialogHeader>
 
                           <DialogFooter className="flex justify-end gap-2">
@@ -162,7 +179,10 @@ export default function Navbar() {
                             </DialogClose>
 
                             <DialogClose asChild>
-                              <Button className="bg-red-600 hover:bg-red-700" onClick={handleLogout}>
+                              <Button
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={handleLogout}
+                              >
                                 Logout
                               </Button>
                             </DialogClose>
@@ -186,11 +206,17 @@ export default function Navbar() {
 
                 <SheetContent side="right" className="p-6">
                   <div className="flex flex-col gap-6">
-                    <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-                    <Link to="/contact" onClick={() => setOpen(false)}>Contact</Link>
-                    <Link to="/about" onClick={() => setOpen(false)}>About</Link>
+                    <Link to="/" onClick={() => setOpen(false)}>
+                      Home
+                    </Link>
+                    <Link to="/contact" onClick={() => setOpen(false)}>
+                      Contact
+                    </Link>
+                    <Link to="/about" onClick={() => setOpen(false)}>
+                      About
+                    </Link>
 
-                    {(user?.role !== "provider" && user?.role !== "admin") && (
+                    {user?.role !== "provider" && user?.role !== "admin" && (
                       <button
                         onClick={() => {
                           setOpen(false);
@@ -198,18 +224,32 @@ export default function Navbar() {
                           else navigate("/provider");
                         }}
                       >
-                        Become a Provider
+                        Offer Pet Care
                       </button>
                     )}
 
                     {!isLoggedIn ? (
-                      <Link to="/login" onClick={() => setOpen(false)}>Sign In</Link>
+                      <Link to="/login" onClick={() => setOpen(false)}>
+                        Sign In
+                      </Link>
                     ) : (
                       <>
-                        <Link to={profilePath()} onClick={() => setOpen(false)}>Profile</Link>
-                        <Link to={dashboardPath()} onClick={() => setOpen(false)}>Dashboard</Link>
+                        {/* <Link to={profilePath()} onClick={() => setOpen(false)}>
+                          Profile
+                        </Link> */}
+                        {/* <Link
+                          to={dashboardPath()}
+                          onClick={() => setOpen(false)}
+                        >
+                          Dashboard
+                        </Link> */}
                         {user?.role === "admin" && (
-                          <Link to="/adminDashboard" onClick={() => setOpen(false)}>Admin Panel</Link>
+                          <Link
+                            to="/adminDashboard"
+                            onClick={() => setOpen(false)}
+                          >
+                            Admin Panel
+                          </Link>
                         )}
                         <button
                           onClick={() => {

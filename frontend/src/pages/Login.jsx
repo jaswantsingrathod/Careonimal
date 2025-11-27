@@ -35,9 +35,9 @@ export default function Login() {
 
   const demo = (role) => {
     const creds = {
-      admin: { email: "admin@gmail.com", password: "admin21" },
+      admin: { email: "admin@test.com", password: "admin123" },
       provider: { email: "provider@test.com", password: "provider" },
-      user: { email: "user@test.com", password: "user123" },
+      user: { email: "user@test.com", password: "User@123" },
     }[role];
 
     if (!creds) return;

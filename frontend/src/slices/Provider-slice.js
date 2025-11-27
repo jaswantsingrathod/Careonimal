@@ -3,31 +3,55 @@ import axios from "../config/axios";
 
 export const createProvider = createAsyncThunk(
   "provider/createProvider",
-  // pass a FormData or plain object as 'payload'
   async (formData, { rejectWithValue }) => {
     try {
       const res = await axios.post("/providers/register", formData, {
         headers: { Authorization: localStorage.getItem("token") },
       });
-      console.log("createProvider axios response:", res); // full response
       console.log("createProvider res.data:", res.data);
-      return res.data; // whatever backend returns
+      return res.data;
     } catch (err) {
-      // safe error extraction
-      console.error("createProvider - axios error object:", err);
-      console.error("createProvider - err.response:", err?.response);
-      console.error(
-        "createProvider - err.response?.status:",
-        err?.response?.status
-      );
-      console.error(
-        "createProvider - err.response?.data:",
-        err?.response?.data
-      );
       console.log(err?.response?.data?.error);
       return rejectWithValue(
         err?.response?.data?.error || "Create provider failed"
       );
+    }
+  }
+);
+
+export const updateProvider = createAsyncThunk(
+  "provider/updateProvider",
+  async ({ id, formData }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(`/provider/account/update/${id}`, formData, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+      console.log(res.data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      const message = err?.response?.data?.error || err.message;
+      console.log(message);
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const deleteAccount = createAsyncThunk(
+  "provider/deleteAccount",
+  async ( id , { rejectWithValue }) => {
+    try {
+      const res = await axios.delete(
+        `/provider/account/delete/${id}`,
+        { headers: { Authorization: localStorage.getItem("token") } }
+      );
+      console.log(res.data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+      return rejectWithValue(err);
     }
   }
 );
@@ -59,6 +83,29 @@ const providerSlice = createSlice({
       .addCase(createProvider.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to create provider";
+      });
+    builder
+      .addCase(updateProvider.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProvider.fulfilled, (state, action) => {
+        (state.loading = false), (state.provider = action.payload);
+      })
+      .addCase(updateProvider.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to create provider";
+      });
+    builder
+      .addCase(deleteAccount.pending, (state) => {
+        (state.loading = true), (state.error = null);
+      })
+      .addCase(deleteAccount.fulfilled, (state, action) => {
+        (state.loading = false), (state.provider = null);
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
+        (state.loading = false),
+          (state.error = action.payload || "Failed to delete your account");
       });
   },
 });

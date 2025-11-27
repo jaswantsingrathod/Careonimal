@@ -1,7 +1,7 @@
 import UserContext from "../context/User-Context";
 import { useContext, useEffect } from "react";
 import { useFormik } from "formik";
-
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PhoneInput from "react-phone-number-input";
@@ -132,7 +132,15 @@ export default function Register() {
           >
             Register
           </Button>
-
+            <p className="mt-1 text-[11px] text-center text-slate-500">
+              Already registered?{" "}
+              <Link
+                to="/login"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Login
+              </Link>
+            </p>
         </form>
       </div>
     </div>

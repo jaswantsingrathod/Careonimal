@@ -1,15 +1,18 @@
 import { FaEnvelope, FaPhone, FaClock } from 'react-icons/fa';
 
-import logoImg from "../assets/logoImg.png"
+import logoImg from "../assets/careonimal.loggo.png"
 export default function Footer() {
   return (
     <footer className="w-full mt-7 border rounded-lg bg-orange-100 text-gray-300 py-8 shadow-2xl">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-10 gap-x-12 pb-8">
+         <div className="flex flex-col items-center">
+            <img className="h-30 w-auto" src={logoImg} alt="Careonimal Logo" />
 
-          <div>
-            <img className="h-60 w-auto ps-14" src={logoImg} alt="Careonimal Logo" />
+            <span className="text-lg font-semibold text-orange-600 mt-2 text-center">
+              𝓒𝓪𝓻𝓮𝓸𝓷𝓲𝓶𝓪𝓵
+            </span>
           </div>
 
           <div className='text-gray-800'>
