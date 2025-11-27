@@ -3,7 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
 import Provider from "./pages/providers/Provider";
-import Navbar from "./components/navbar";
+import Navbar from "./components/Navbar";
 import AboutUs from "./pages/AboutUs";
 import Dashboard from "./pages/users/Dashboard";
 import AdminDasboard from "./pages/admin/AdminDashboard";
