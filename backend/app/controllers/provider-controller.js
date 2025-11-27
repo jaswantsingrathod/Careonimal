@@ -84,7 +84,6 @@ ProviderController.list = async (req, res) => {
   }
 };
 
-
 ProviderController.approve = async (req, res) => {
   try {
     const id = req.params.id;

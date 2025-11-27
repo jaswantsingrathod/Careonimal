@@ -46,27 +46,27 @@ UserController.register = async (req, res) => {
 };
 
 UserController.login = async (req, res) => {
-    const body = req.body
-    const { error, value } = userLoginValidation.validate(body, { abortEarly: false })
+  try {
+    const body = req.body;
+    const { error, value } = userLoginValidation.validate(body, { abortEarly: false });
     if (error) {
-        return res.status(400).json({ error: error.message })
+      return res.status(400).json({ error: error.message });
     }
-    const user = await User.findOne({ email: value.email })
+
+    const user = await User.findOne({ email: value.email });
     if (!user) {
-        return res.status(401).json({ error: 'Invalid email / password' })
+      return res.status(401).json({ error: "Invalid email / password" });
     }
-    const passwordMatch = await bcryptjs.compare(value.password, user.password)
+
+    const passwordMatch = await bcryptjs.compare(value.password, user.password);
     if (!passwordMatch) {
-        return res.status(401).json({ error: 'Invalid email / password' })
+      return res.status(401).json({ error: "Invalid email / password" });
     }
 
-    await User.findByIdAndUpdate(user._id, { $inc: { loginCount: 1 } })
-    const tokenData = { userId: user._id, role: user.role };
-    console.log(tokenData);
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '30d' })
+    await User.findByIdAndUpdate(user._id, { $inc: { loginCount: 1 } });
 
-    // only logged in users data
-    const userDetais = {
+    // only logged in users data (safe fields)
+    const userDetails = {
       _id: user._id,
       username: user.username,
       email: user.email,
@@ -74,16 +74,74 @@ UserController.login = async (req, res) => {
       role: user.role,
     };
 
-    // admin logs in send all users
-    if(user.role === "admin"){
-      const allUsers = await User.find().sort({createdAt: -1})
-      return res.status(200).json({token,
-        user: userDetais,
-        users: allUsers})
+    // --- ADMIN: keep old behaviour ---
+    if (user.role === "admin") {
+      const allUsers = await User.find().sort({ createdAt: -1 });
+      const tokenData = { userId: user._id, role: user.role };
+      const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+      return res.status(200).json({
+        token,
+        user: userDetails,
+        users: allUsers,
+      });
     }
 
-    return res.status(200).json({ token, user: userDetais });
-}
+    // --- PROVIDER: check provider record & approval ---
+    if (user.role === "provider") {
+      // try to find the provider doc for this user (populate user minimally if desired)
+      const provider = await Provider.findOne({ user: user._id }).lean();
+
+      // if provider found but not approved -> do NOT issue token, send pending response
+      if (provider && provider.approvedByAdmin === false) {
+        return res.status(200).json({
+          pending: true,
+          message: "Provider profile is under review",
+          user: userDetails,
+          provider,
+        });
+      }
+
+      // if no provider doc exists -> treat as pending (you may change to return create-flow)
+      if (!provider) {
+        return res.status(200).json({
+          pending: true,
+          message: "Provider profile not created yet",
+          user: userDetails,
+        });
+      }
+
+      // provider exists and is approved -> issue token and return provider as well
+      if (provider.approvedByAdmin === true) {
+        const tokenData = { userId: user._id, role: user.role };
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+        return res.status(200).json({
+          token,
+          user: userDetails,
+          provider,
+        });
+      }
+
+      // fallback (shouldn't reach here) -> treat as pending
+      return res.status(200).json({
+        pending: true,
+        message: "Provider must be approved",
+        user: userDetails,
+        provider,
+      });
+    }
+
+    // --- Regular non-provider user: issue token as before ---
+    const tokenData = { userId: user._id, role: user.role };
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+    return res.status(200).json({ token, user: userDetails });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 UserController.list = async (req, res) => {
   const body = req.body;

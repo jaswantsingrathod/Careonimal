@@ -18,9 +18,8 @@ export const providerValidation = Joi.object({
 
   priceRange: Joi.string().allow("", null),
 
-  contact: Joi.string()
-    .pattern(/^[0-9]{10}$/)
-    .required(),
+  contact: Joi.string().allow("", null),
+
 
   image: Joi.string().allow("", null),
 
@@ -60,7 +59,10 @@ export const providerUpdateValidation = Joi.object({
 
   // city: Joi.string(),
   priceRange: Joi.string().allow("", null),
-  contact: Joi.string().pattern(/^[0-9]{10}$/),
+  contact: Joi.string()
+  .trim()
+  .pattern(/^(\+?91)?[6-9][0-9]{9}$/)
+  .required(),
   image: Joi.string().allow("", null),
   availability: Joi.boolean(),
   approvedByAdmin: Joi.boolean(),
@@ -78,6 +80,7 @@ export const providerUpdateValidation = Joi.object({
           price: Joi.number().min(0)
         })
       )
+      
     })
   )
 });
