@@ -16,11 +16,13 @@ import ProviderPrfl from "./pages/providers/ProviderPrfl";
 import UserPrfl from "./pages/users/UserPrfl";
 import ProviderDashboard from "./pages/providers/ProviderDashboard";
 import PendingApproval from "./pages/providers/PendingApprovel";
+import ScrollToTop from "./pages/ScrollToTop";
 
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {Skeleton} from "./components/ui/skeleton";
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
       />
       <div className="py-5 items-center pt-18">
         <Navbar />
+        <Skeleton/>
+        <ScrollToTop/>
         <Routes>
           <Route path="/" element={<Home />}></Route>
           <Route path="/login" element={<Login />}></Route>
