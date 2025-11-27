@@ -5,9 +5,9 @@ import axios from "../config/axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-
 export default function AuthenticationProvider(props) {
   const navigate = useNavigate();
+
   const [userState, userDispatch] = useReducer(UserReducer, {
     user: null,
     isLoggedIn: false,
@@ -30,23 +30,54 @@ export default function AuthenticationProvider(props) {
   const handleLogin = async (formData, resetForm) => {
     try {
       const response = await axios.post("/users/login", formData);
-      localStorage.setItem("token", response.data.token);
+      const data = response.data;
 
-      const userRes = await axios.get("/users/account", {headers: {Authorization: localStorage.getItem("token")}});
-      const user = userRes.data;
+      if (data?.pending) {
+        // store small info to show on pending page (optional)
+        sessionStorage.setItem(
+          "pendingProviderUser",
+          JSON.stringify({
+            id: data.user?._id,
+            username: data.user?.username,
+            message: data.message || "Your provider profile is under review",
+          })
+        );
 
-      userDispatch({ type: "LOGIN", payload: user });
-
-      if (user.role === "admin") {
-        navigate("/adminDashboard");
-      } else if (user.role === "provider") {
-        navigate("/provider/dashboard");
-      } else {
-        navigate("/");
+        // ensure no token is persisted
+        localStorage.removeItem("token");
+        // navigate to the pending page (user is not logged in)
+        navigate("/provider/pending", { replace: true });
+        resetForm?.();
+        return;
       }
 
-      resetForm();
-      toast.success("Successfully Logged in");
+      // --- normal login flow (token issued) ---
+      if (data?.token) {
+        // persist token
+        localStorage.setItem("token", data.token);
+        // fetch the account/user details using persisted token (your existing endpoint)
+        const userRes = await axios.get("/users/account", {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        const user = userRes.data;
+
+        userDispatch({ type: "LOGIN", payload: user });
+
+        if (user.role === "admin") {
+          navigate("/adminDashboard");
+        } else if (user.role === "provider") {
+          navigate("/provider/profile");
+        } else {
+          navigate("/");
+        }
+
+        resetForm?.();
+        toast.success("Successfully Logged in");
+        return;
+      }
+
+      // unexpected response
+      toast.error("Unexpected response from server during login");
     } catch (err) {
       console.log(err?.response?.data?.error);
       userDispatch({
@@ -58,8 +89,9 @@ export default function AuthenticationProvider(props) {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    delete axios.defaults.headers.common["Authorization"];
     userDispatch({ type: "LOGOUT" });
-    toast.success("Logged out")
+    toast.success("Logged out");
     navigate("/");
   };
 
@@ -69,11 +101,13 @@ export default function AuthenticationProvider(props) {
       if (!token) return;
       try {
         const response = await axios.get(`/users/account`, {
-          headers: { Authorization: localStorage.getItem("token") },
+          headers: { Authorization: token },
         });
         userDispatch({ type: "LOGIN", payload: response.data });
       } catch (err) {
         console.log(err.message);
+        // token may be invalid -> clear it
+        localStorage.removeItem("token");
       }
     };
     fetchUser();

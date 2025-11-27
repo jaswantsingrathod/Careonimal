@@ -6,13 +6,16 @@ import Provider from "./pages/providers/Provider";
 import Navbar from "./components/navbar";
 import AboutUs from "./pages/AboutUs";
 import Dashboard from "./pages/users/Dashboard";
-import AdminDasboard from "./pages/AdminDashboard";
+import AdminDasboard from "./pages/admin/AdminDashboard";
 import UserProfile from "./pages/users/UserProfile";
 import ProviderProfile from "./pages/providers/ProviderProfile";
 import ProviderList from "./pages/providers/ProviderList";
 import UsersList from "./pages/users/UsersList";
-import AdminProfile from "./pages/AdminProfile";
+import AdminProfile from "./pages/admin/AdminProfile";
+import ProviderPrfl from "./pages/providers/ProviderPrfl";
+import UserPrfl from "./pages/users/UserPrfl";
 import ProviderDashboard from "./pages/providers/ProviderDashboard";
+import PendingApproval from "./pages/providers/PendingApprovel";
 
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
@@ -34,7 +37,7 @@ function App() {
           backdropFilter: "blur(8px)",
           background: "rgba(255, 255, 255, 0.4)",
           color: "#000",
-          minHeight: "38px",
+          minHeight: "40px",
           padding: "6px 14px",
           borderRadius: "10px",
           fontSize: "13px",
@@ -53,6 +56,10 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}></Route>
           <Route path="/adminDashboard" element={<AdminDasboard />}></Route>
           <Route path="/admin/user/:id" element={<UserProfile />}></Route>
+          <Route path="/provider/profile" element={<ProviderPrfl/>}></Route>
+          <Route path="/user/profile" element={<UserPrfl/>}></Route>
+          <Route path="/provider/pending" element={<PendingApproval/>}></Route>
+
           <Route
             path="/admin/provider/:id"
             element={<ProviderProfile />}

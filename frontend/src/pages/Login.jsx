@@ -33,6 +33,23 @@ export default function Login() {
     }
   }, [serverError]);
 
+  const demo = (role) => {
+    const creds = {
+      admin: { email: "admin@gmail.com", password: "admin21" },
+      provider: { email: "provider@test.com", password: "provider" },
+      user: { email: "user@test.com", password: "user123" },
+    }[role];
+
+    if (!creds) return;
+
+    // Fill formik values
+    formik.setFieldValue("email", creds.email);
+    formik.setFieldValue("password", creds.password);
+
+    // Login directly
+    handleLogin(creds, formik.resetForm);
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center  px-4">
       <div className="w-120 h-screen p-20">
@@ -41,17 +58,39 @@ export default function Login() {
           Login
         </h2>
 
+        {/* small demo buttons — replace the current demo button block with this */}
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            onClick={() => demo("admin")}
+            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
+          >
+            Admin
+          </button>
+
+          <button
+            type="button"
+            onClick={() => demo("provider")}
+            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
+          >
+            Provider
+          </button>
+
+          <button
+            type="button"
+            onClick={() => demo("user")}
+            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
+          >
+            User
+          </button>
+        </div>
+
         {/* Inline error text if you still want it */}
         {serverError && (
-          <p className="text-xs text-red-500 text-center mb-2">
-            {serverError}
-          </p>
+          <p className="text-xs text-red-500 text-center mb-2">{serverError}</p>
         )}
 
-        <form
-          onSubmit={formik.handleSubmit}
-          className="w-full"
-        >
+        <form onSubmit={formik.handleSubmit} className="w-full">
           <div className="flex flex-col gap-3 p-5 bg-white rounded-xl shadow-sm border border-slate-200">
             {/* Email */}
             <Input

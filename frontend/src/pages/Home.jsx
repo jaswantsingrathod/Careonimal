@@ -8,14 +8,31 @@ import {
 } from "lucide-react";
 import img from "../assets/dog.gif";
 import Footer from "../components/Footer";
+import { useLocation } from "react-router-dom";
+
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { state } = useLocation();
+
+  // Show toast when redirected after provider form submission
+  useEffect(() => {
+    if (state?.providerSubmitted) {
+      toast.success(state.message || "Provider form submitted!", {
+        autoClose: 9000, // only this toast stays 4-5 seconds
+      });
+    }
+  }, [state?.providerSubmitted]);
+
   return (
-    <main className="min-h-screen w-full bg-white px-4  flex items-start justify-center">
+    <main className="min-h-screen w-full bg-white px-4 flex items-start justify-center">
+
       <div className="w-full max-w-6xl">
         {/* HERO CARD */}
         <section className="bg-white rounded-2xl shadow-lg border border-orange-50 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center px-6 lg:px-10 pt-8 pb-6">
+
             {/* LEFT */}
             <div className="space-y-6 md:pr-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700 w-max">
@@ -31,12 +48,18 @@ export default function Home() {
               <p className="text-neutral-600 text-sm max-w-xl">
                 Book trusted vets, groomers & pet boarders — all in one place.
                 <br />
-                <span className="font-semibold text-neutral-800">Connecting pets with loving care — anytime, anywhere.</span>
+                <span className="font-semibold text-neutral-800">
+                  Connecting pets with loving care — anytime, anywhere.
+                </span>
               </p>
 
               <div className="flex flex-wrap gap-3 items-center">
-                <Button className="rounded-full px-6 py-2 text-sm bg-orange-600 hover:bg-orange-700">Get Started</Button>
-                <Button className="rounded-full px-6 py-2 text-sm bg-green-400 border hover:bg-green-500">Offer Care</Button>
+                <Button className="rounded-full px-6 py-2 text-sm bg-orange-600 hover:bg-orange-700">
+                  Get Started
+                </Button>
+                <Button className="rounded-full px-6 py-2 text-sm bg-green-400 border hover:bg-green-500">
+                  Offer Care
+                </Button>
               </div>
 
               {/* Stats */}
@@ -50,10 +73,10 @@ export default function Home() {
             <div className="flex justify-center md:justify-end">
               <div className="relative h-72 w-72 lg:h-80 lg:w-80 bg-gradient-to-b from-orange-50 to-white rounded-2xl overflow-hidden flex items-end justify-center">
                 <img src={img} alt="happy dog" className="h-full w-full object-cover" />
-                {/* decorative shadow */}
                 <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent" />
               </div>
             </div>
+
           </div>
 
           {/* SEARCH BAR */}
@@ -74,8 +97,9 @@ export default function Home() {
               </div>
             </form>
 
-            {/* small hint row */}
-            <div className="mt-3 text-xs text-neutral-500">Tip: Try "Grooming" or "Vet near me" — results update as you type.</div>
+            <div className="mt-3 text-xs text-neutral-500">
+              Tip: Try "Grooming" or "Vet near me" — results update as you type.
+            </div>
           </div>
         </section>
 

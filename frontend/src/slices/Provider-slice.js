@@ -1,19 +1,33 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../config/axios";
-import { useNavigate } from "react-router-dom";
 
 export const createProvider = createAsyncThunk(
   "provider/createProvider",
   // pass a FormData or plain object as 'payload'
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await axios.post("/providers/register", formData, {headers: {Authorization: localStorage.getItem("token")}});
-      console.log("provider", res.data);
+      const res = await axios.post("/providers/register", formData, {
+        headers: { Authorization: localStorage.getItem("token") },
+      });
+      console.log("createProvider axios response:", res); // full response
+      console.log("createProvider res.data:", res.data);
       return res.data; // whatever backend returns
     } catch (err) {
       // safe error extraction
-      const message = err?.response?.data?.error || err?.message || "Create provider failed";
-      return rejectWithValue(message);
+      console.error("createProvider - axios error object:", err);
+      console.error("createProvider - err.response:", err?.response);
+      console.error(
+        "createProvider - err.response?.status:",
+        err?.response?.status
+      );
+      console.error(
+        "createProvider - err.response?.data:",
+        err?.response?.data
+      );
+      console.log(err?.response?.data?.error);
+      return rejectWithValue(
+        err?.response?.data?.error || "Create provider failed"
+      );
     }
   }
 );

@@ -1,22 +1,39 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import UserContext from "@/context/User-Context";
-import img from "../assets/careonimallogo.png";
-
+import { LogOut, Settings, Menu } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-
-import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+/* shadcn DropdownMenu imports */
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import logo from "../assets/careonimal.loggo.png";
 
 export default function Navbar() {
   const { isLoggedIn, handleLogout, user } = useContext(UserContext);
   const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
 
   // Helper to get dashboard path based on role
@@ -26,163 +43,192 @@ export default function Navbar() {
     return "/dashboard";
   };
 
-  //  ADMIN NAVBAR 
-  if (user?.role === "admin") {
-    return (
-      <nav className="w-[95%] fixed left-[31px] top-2 z-20 rounded-lg backdrop-blur-md bg-gray-150 shadow-2xl text-black border-b">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
-            <Link
-              to="/adminDashboard"
-              className="text-lg font-bold tracking-wide hover:text-white transition"
-            >
-              Admin Panel
-            </Link>
-          {/* MOBILE */}
-          <div className="md:hidden">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6 text-white" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-6">
-                <div className="flex flex-col gap-6">
-                  <Link to="/adminDashboard" onClick={() => setOpen(false)}>
-                    Dashboard
-                  </Link>
-                  <button onClick={() => { handleLogout(); setOpen(false); }}>
-                    Logout
-                  </button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  // Helper to get profile path based on role
+  const profilePath = () => {
+    if (user?.role === "admin") return "/admin/profile";
+    if (user?.role === "provider") return "/provider/profile";
+    return "/user/profile";
+  };
 
-  //  USER / PROVIDER NAVBAR — Fully Responsive
   return (
     <>
-    <header className="w-[94%] rounded-lg backdrop-blur-md bg-gray-150 shadow-2xl fixed top-2 left-9  z-20">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+      <header className="w-[94%] rounded-lg font-semibold backdrop-blur-md bg-gray-150 shadow-2xl fixed top-2 left-9 z-20">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+          {/* LOGO */}
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="Careonimal" className="h-10 w-auto" />
+              {/* <span className="text-lg font-semibold text-neutral-800">Careonimal</span> */}
+            </Link>
+          </div>
 
-        {/* LOGO */}
-        <div className="flex items-center gap-2">
-          <Link to="/" className="text-lg font-semibold text-neutral-800">
-            Careonimal
-          </Link>
-        </div>
+          {/* DESKTOP MENU */}
+          <div className="hidden md:block">
+            <NavigationMenu>
+              <NavigationMenuList className="flex items-center gap-6">
+                <NavItem to="/">Home</NavItem>
+                <NavItem to="/contact">Contact</NavItem>
+                <NavItem to="/about">About Us</NavItem>
 
-        {/* DESKTOP MENU */}
-        <div className="hidden md:flex">
-          <NavigationMenu>
-            <NavigationMenuList className="flex items-center gap-6">
-              <NavItem to="/">Home</NavItem>
-              <NavItem to="/contact">Contact</NavItem>
-              <NavItem to="/about">About Us</NavItem>
+                {/* Become a Provider: show only to users who are NOT provider and NOT admin */}
+                {(user?.role !== "provider" && user?.role !== "admin") && (
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <button
+                        onClick={() => {
+                          if (!isLoggedIn) navigate("/login");
+                          else navigate("/provider");
+                        }}
+                        className="relative text-sm text-neutral-700 hover:text-black transition 
+                          after:absolute after:left-0 after:-bottom-1 after:h-[1.5px]
+                          after:w-0 after:bg-neutral-900 after:transition-all after:duration-300
+                          hover:after:w-full bg-transparent border-0 p-0"
+                      >
+                        Become a Provider
+                      </button>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
 
-              {/* Hide Become Provider for providers */}
-              {user?.role !== "provider" && (
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <button
-                      onClick={() => {
-                        if (!isLoggedIn) navigate("/login");
-                        else navigate("/provider");
-                      }}
-                      className="relative text-sm text-neutral-700 hover:text-black transition 
-                        after:absolute after:left-0 after:-bottom-1 after:h-[1.5px]
-                        after:w-0 after:bg-neutral-900 after:transition-all after:duration-300
-                        hover:after:w-full bg-transparent border-0 p-0"
-                    >
-                      Become a Provider
-                    </button>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              )}
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-
-        {/* RIGHT SIDE — DESKTOP */}
-        <div className="hidden md:flex items-center gap-3">
-          {!isLoggedIn ? (
-            <Button asChild variant="outline" className="border-neutral-300 text-neutral-700 hover:bg-neutral-100">
-              <Link to="/login">Sign In</Link>
-            </Button>
-          ) : (
-            <>
+          {/* RIGHT SIDE — DESKTOP (always visible) */}
+          <div className="flex items-center gap-3">
+            {!isLoggedIn ? (
               <Button
                 asChild
-                variant="ghost"
-                className="text-neutral-700 hover:text-black"
+                variant="outline"
+                className="border-neutral-300 text-neutral-700 hover:bg-neutral-100"
               >
-                <Link to={dashboardPath()}>Dashboard</Link>
+                <Link to="/login">Sign In</Link>
               </Button>
-
-              <Button onClick={handleLogout} className="bg-red-500 hover:bg-red-600">
-                Logout
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* MOBILE MENU */}
-        <div className="md:hidden">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6 text-neutral-800" />
-              </Button>
-            </SheetTrigger>
-
-            <SheetContent side="right" className="p-6">
-              <div className="flex flex-col text-lg gap-4">
-
-                <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-                <Link to="/contact" onClick={() => setOpen(false)}>Contact</Link>
-                <Link to="/about" onClick={() => setOpen(false)}>About Us</Link>
-
-                {user?.role !== "provider" && (
-                  <button
-                    onClick={() => {
-                      setOpen(false);
-                      if (!isLoggedIn) navigate("/login");
-                      else navigate("/provider");
-                    }}
-                  >
-                    Become a Provider
-                  </button>
-                )}
-
-                <div className="border-t pt-4 mt-2" />
-
-                {!isLoggedIn ? (
-                  <button onClick={() => { setOpen(false); navigate("/login"); }}>
-                    Sign In
-                  </button>
-                ) : (
-                  <>
-                    <button onClick={() => { setOpen(false); navigate(dashboardPath()); }}>
-                      Dashboard
+            ) : (
+              <>
+                {/* Settings dropdown using shadcn DropdownMenu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="cursor-pointer px-3 py-2 rounded-md hover:bg-slate-50 flex items-center gap-2">
+                      <Settings />
                     </button>
-                    <button
-                      className="text-red-600"
-                      onClick={() => { handleLogout(); setOpen(false); }}
-                    >
-                      Logout
-                    </button>
-                  </>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={profilePath()}
+                        className="block px-2 py-1 text-sm hover:bg-neutral-100 rounded"
+                      >
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={dashboardPath()}
+                        className="block px-2 py-1 text-sm hover:bg-neutral-100 rounded"
+                      >
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+
+                    {/* Admin: also show admin-specific links (if desired) */}
+                    {user?.role === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/adminDashboard" className="block px-2 py-1 text-sm hover:bg-neutral-100 rounded">
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+
+                    {/* Logout inside the dropdown */}
+                    <div className="px-2 py-1">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50">
+                            <span>Logout</span>
+                          </button>
+                        </DialogTrigger>
+
+                        <DialogContent className="max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle className="text-lg font-semibold">Logout?</DialogTitle>
+                            <DialogDescription>Are you sure you want to logout?</DialogDescription>
+                          </DialogHeader>
+
+                          <DialogFooter className="flex justify-end gap-2">
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+
+                            <DialogClose asChild>
+                              <Button className="bg-red-600 hover:bg-red-700" onClick={handleLogout}>
+                                Logout
+                              </Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+
+            {/* MOBILE: sheet trigger */}
+            <div className="md:hidden">
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6 text-white" />
+                  </Button>
+                </SheetTrigger>
+
+                <SheetContent side="right" className="p-6">
+                  <div className="flex flex-col gap-6">
+                    <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+                    <Link to="/contact" onClick={() => setOpen(false)}>Contact</Link>
+                    <Link to="/about" onClick={() => setOpen(false)}>About</Link>
+
+                    {(user?.role !== "provider" && user?.role !== "admin") && (
+                      <button
+                        onClick={() => {
+                          setOpen(false);
+                          if (!isLoggedIn) navigate("/login");
+                          else navigate("/provider");
+                        }}
+                      >
+                        Become a Provider
+                      </button>
+                    )}
+
+                    {!isLoggedIn ? (
+                      <Link to="/login" onClick={() => setOpen(false)}>Sign In</Link>
+                    ) : (
+                      <>
+                        <Link to={profilePath()} onClick={() => setOpen(false)}>Profile</Link>
+                        <Link to={dashboardPath()} onClick={() => setOpen(false)}>Dashboard</Link>
+                        {user?.role === "admin" && (
+                          <Link to="/adminDashboard" onClick={() => setOpen(false)}>Admin Panel</Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setOpen(false);
+                          }}
+                        >
+                          Logout
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
-    <div className="h-5"></div>
+      </header>
+      <div className="h-5"></div>
     </>
   );
 }

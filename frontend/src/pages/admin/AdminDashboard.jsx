@@ -6,7 +6,7 @@ import {
   fetchSingleUser,
   fetchProvider,
   setSelectedProvider,
-} from "../slices/admin-slice";
+} from "../../slices/admin-slice";
 import { Users, PawPrint, Eye, Trash, Book, LogOut } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -21,7 +21,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import UserContext from "../context/User-Context";
+import UserContext from "../../context/User-Context";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -135,10 +135,10 @@ export default function AdminDashboard() {
                 <div className="mt-2 border-t border-slate-100 pt-2">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <button className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50">
+                      {/* <button className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50">
                         <LogOut />
                         <span>Logout</span>
-                      </button>
+                      </button> */}
                     </DialogTrigger>
 
                     <DialogContent className="max-w-sm">

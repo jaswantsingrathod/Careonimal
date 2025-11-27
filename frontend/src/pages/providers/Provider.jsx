@@ -1,13 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { createProvider } from "../../slices/Provider-slice";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import Joi from "joi";
+import { useNavigate } from "react-router-dom";
+import UserContext from "../../context/User-Context";
+import { toast } from "react-toastify";
 
 export default function ProviderForm() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { handleLogout } = useContext(UserContext) || {};
   const { loading, error } = useSelector((s) => s.provider || {});
   const [logoPreview, setLogoPreview] = useState(null);
 
@@ -63,10 +68,11 @@ export default function ProviderForm() {
   // ---------------------- VALIDATOR ----------------------
   function validateWithJoi(values) {
     try {
+      // convert:true allows Joi to coerce numeric strings to numbers (more forgiving)
       const { error } = providerSchema.validate(values, {
         abortEarly: false,
         allowUnknown: true,
-        convert: false, // avoid auto conversion surprises
+        convert: true, // <-- changed to true for better validation/coercion
       });
       if (!error) return {};
       const errors = {};
@@ -77,8 +83,6 @@ export default function ProviderForm() {
           errors[dotKey] = item.message.replace(/["]/g, "");
         }
       }
-      // console.log("Mapped Formik errors:", errors);
-      console.groupEnd();
       return errors;
     } catch (e) {
       console.error("validateWithJoi unexpected error:", e);
@@ -104,28 +108,87 @@ export default function ProviderForm() {
       ],
     },
     validate: validateWithJoi,
-    onSubmit: (values) => {
-      const fd = new FormData();
-      fd.append("serviceType", values.serviceType);
-      fd.append("businessName", values.businessName);
-      fd.append("description", values.description || "");
-      fd.append("priceRange", values.priceRange || "");
-      fd.append("contact", values.contact || "");
-      if (values.location.address) fd.append("location[address]", values.location.address);
-      if (values.location.latitude !== "") fd.append("location[latitude]", values.location.latitude);
-      if (values.location.longitude !== "") fd.append("location[longitude]", values.location.longitude);
-      if (values.imageFile) fd.append("image", values.imageFile);
+    onSubmit: async (values, { setSubmitting, setErrors }) => {
+      setSubmitting(true);
+      try {
+        const fd = new FormData();
+        fd.append("serviceType", values.serviceType);
+        fd.append("businessName", values.businessName);
+        fd.append("description", values.description || "");
+        fd.append("priceRange", values.priceRange || "");
+        fd.append("contact", values.contact || "");
+        // keep bracket form as you had (no structural backend change)
+        if (values.location.address) fd.append("location[address]", values.location.address);
+        if (values.location.latitude !== "") fd.append("location[latitude]", values.location.latitude);
+        if (values.location.longitude !== "") fd.append("location[longitude]", values.location.longitude);
+        if (values.imageFile) fd.append("image", values.imageFile);
 
-      (values.servicesOffered || []).forEach((group, i) => {
-        fd.append(`servicesOffered[${i}][petType]`, group.petType || "");
-        (group.subServices || []).forEach((sub, j) => {
-          fd.append(`servicesOffered[${i}][subServices][${j}][service]`, sub.service || "");
-          fd.append(`servicesOffered[${i}][subServices][${j}][description]`, sub.description || "");
-          fd.append(`servicesOffered[${i}][subServices][${j}][price]`, sub.price !== "" ? String(sub.price) : "");
+        (values.servicesOffered || []).forEach((group, i) => {
+          fd.append(`servicesOffered[${i}][petType]`, group.petType || "");
+          (group.subServices || []).forEach((sub, j) => {
+            fd.append(`servicesOffered[${i}][subServices][${j}][service]`, sub.service || "");
+            fd.append(`servicesOffered[${i}][subServices][${j}][description]`, sub.description || "");
+            fd.append(`servicesOffered[${i}][subServices][${j}][price]`, sub.price !== "" ? String(sub.price) : "");
+          });
         });
-      });
 
-      dispatch(createProvider(fd));
+        // dispatch and wait result
+        const action = await dispatch(createProvider(fd));
+
+        // success
+        if (createProvider.fulfilled.match(action)) {
+          toast.success("Provider submitted successfully — logging out...");
+          // logout if available
+          try {
+            if (typeof handleLogout === "function") {
+              await handleLogout();
+            } else {
+              localStorage.removeItem("token");
+            }
+          } catch (err) {
+            // still continue even if logout fails
+            console.warn("Logout failed:", err);
+            localStorage.removeItem("token");
+          }
+
+          navigate("/", {
+            state: {
+              providerSubmitted: true,
+              message: "Your provider form has been submitted. We will notify you once profile is approved.",
+            },
+          });
+          return;
+        }
+
+        // rejected -> show error, keep user on form
+        if (createProvider.rejected.match(action)) {
+          const payload = action.payload;
+          const errMsg = payload || action.error?.message || "Failed to create provider";
+          toast.error(errMsg);
+
+          // If backend returned Joi-like details, map to formik errors
+          // e.g. payload = { error: "...", details: [ { message, path: [...] }, ... ] }
+          if (payload && typeof payload === "object" && Array.isArray(payload.details)) {
+            const mapped = {};
+            for (const d of payload.details) {
+              const key = Array.isArray(d.path) ? d.path.join(".") : String(d.path || "");
+              if (key) mapped[key] = d.message || "Invalid value";
+            }
+            if (Object.keys(mapped).length) {
+              setErrors(mapped);
+            }
+          }
+          return;
+        }
+
+        // fallback (shouldn't happen)
+        toast.error("Unexpected response from server.");
+      } catch (err) {
+        console.error("onSubmit unexpected error:", err);
+        toast.error("Something went wrong while submitting. Check console.");
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
@@ -293,13 +356,13 @@ export default function ProviderForm() {
 
         <div className="flex items-center gap-2">
           <Button
-          type="button"
-          onClick={getAndFillLocation}
-          className="rounded-full px-6 py-2 text-sm bg-blue-400 border hover:bg-blue-500"
-        >
-          <MapPin className="h-3 w-3 text-white" />
-          Fetch location
-        </Button>
+            type="button"
+            onClick={getAndFillLocation}
+            className="rounded-full px-6 py-2 text-sm bg-blue-400 border hover:bg-blue-500"
+          >
+            <MapPin className="h-3 w-3 text-white" />
+            Fetch location
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -408,8 +471,8 @@ export default function ProviderForm() {
         </div>
 
         <div className="pt-2">
-          <Button type="submit" disabled={loading} className="w-full py-1.5 text-sm">
-            {loading ? "Submitting..." : "Register Provider"}
+          <Button type="submit" disabled={loading || formik.isSubmitting} className="w-full py-1.5 text-sm">
+            {loading || formik.isSubmitting ? "Submitting..." : "Register Provider"}
           </Button>
         </div>
       </form>

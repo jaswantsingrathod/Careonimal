@@ -112,15 +112,15 @@ export const approveProvider = createAsyncThunk(
   }
 );
 
-export const deleteProvider = createAsyncThunk(
-  "admin/deleteProvider", async (id, {rejectWithValue}) => {
-    try{
-      const res = await axios.delete()
-    }catch(err){
+// export const deleteProvider = createAsyncThunk(
+//   "admin/deleteProvider", async (id, {rejectWithValue}) => {
+//     try{
+//       const res = await axios.delete()
+//     }catch(err){
 
-    }
-  }
-)
+//     }
+//   }
+// )
 
 /* ---------- HELPERS ---------- */
 
