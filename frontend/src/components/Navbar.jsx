@@ -143,7 +143,7 @@ export default function Navbar() {
                     </DropdownMenuItem>
 
                     {/* Admin: also show admin-specific links (if desired) */}
-                    {user?.role === "admin" && (
+                    {/* {user?.role === "admin" && (
                       <DropdownMenuItem asChild>
                         <Link
                           to="/adminDashboard"
@@ -152,7 +152,7 @@ export default function Navbar() {
                           Admin Panel
                         </Link>
                       </DropdownMenuItem>
-                    )}
+                    )} */}
 
                     {/* Logout inside the dropdown */}
                     <div className="px-2 py-1">

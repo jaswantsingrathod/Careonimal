@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         return;
       }
       dispatch(setSelectedProvider(provider));
-      navigate(`/admin/provider/${provider._id}`);
+      navigate(`/admin/${provider._id}/provider`);
     } else {
       dispatch(fetchSingleUser(record._id));
       navigate(`/admin/user/${record._id}`);

@@ -16,13 +16,14 @@ import ProviderPrfl from "./pages/providers/ProviderPrfl";
 import UserPrfl from "./pages/users/UserPrfl";
 import ProviderDashboard from "./pages/providers/ProviderDashboard";
 import PendingApproval from "./pages/providers/PendingApprovel";
+import PublicProviderProfile from "./pages/PublicProviderProfile";
 import ScrollToTop from "./pages/ScrollToTop";
 
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {Skeleton} from "./components/ui/skeleton";
+import { Skeleton } from "./components/ui/skeleton";
 
 function App() {
   return (
@@ -48,8 +49,8 @@ function App() {
       />
       <div className="py-5 items-center pt-18">
         <Navbar />
-        <Skeleton/>
-        <ScrollToTop/>
+        <Skeleton />
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Home />}></Route>
           <Route path="/login" element={<Login />}></Route>
@@ -60,12 +61,13 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}></Route>
           <Route path="/adminDashboard" element={<AdminDasboard />}></Route>
           <Route path="/admin/user/:id" element={<UserProfile />}></Route>
-          <Route path="/provider/profile" element={<ProviderPrfl/>}></Route>
-          <Route path="/user/profile" element={<UserPrfl/>}></Route>
-          <Route path="/provider/pending" element={<PendingApproval/>}></Route>
+          <Route path="/provider/profile" element={<ProviderPrfl />}></Route>
+          <Route path="/user/profile" element={<UserPrfl />}></Route>
+          <Route path="/provider/pending" element={<PendingApproval />}></Route>
+          <Route path="/provider/:id" element={<PublicProviderProfile />}></Route>
 
           <Route
-            path="/admin/provider/:id"
+            path="/admin/:id/provider"
             element={<ProviderProfile />}
           ></Route>
           <Route path="/admin/users/list" element={<UsersList />}></Route>
@@ -75,7 +77,7 @@ function App() {
           ></Route>
           <Route path="/admin/profile" element={<AdminProfile />}></Route>
           <Route
-            path="/provider/dashboard"
+            path="/provider/dashboard/:id"
             element={<ProviderDashboard />}
           ></Route>
         </Routes>

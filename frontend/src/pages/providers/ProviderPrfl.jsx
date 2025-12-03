@@ -1,4 +1,5 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+// src/pages/providers/ProvidersPrfl.jsx
+import { useContext, useEffect, useMemo } from "react";
 import UserContext from "../../context/User-Context";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
@@ -20,28 +21,31 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+import {
+  setOpenLogo,
+  setOpenPersonal,
+  setOpenServices,
+  setDeleteOpen,
+  setBusinessName,
+  setContact,
+  setPriceRange,
+  setLogoFile,
+  setLogoPreview,
+  clearLogo,
+  setServicesCopy,
+  addPetType,
+  removePetType,
+  setPetTypeField,
+  addSubService,
+  removeSubService,
+  setSubField,
+  populateFromProvider,
+} from "../../slices/Provider-slice";
+
 export default function ProvidersPrfl() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-
-  // ---- local UI state for dialogs & form fields ----
-  const [openLogo, setOpenLogo] = useState(false);
-  const [openPersonal, setOpenPersonal] = useState(false);
-  const [openServices, setOpenServices] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-
-  // personal fields
-  const [businessName, setBusinessName] = useState("");
-  const [contact, setContact] = useState("");
-  const [priceRange, setPriceRange] = useState("");
-
-  // logo
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
-
-  // services (editable copy)
-  const [servicesCopy, setServicesCopy] = useState([]);
 
   // select admin slice (providers)
   const {
@@ -49,6 +53,20 @@ export default function ProvidersPrfl() {
     selectedProvider = null,
     loading = false,
   } = useSelector((state) => state.admin || {});
+
+  const ui = useSelector((state) => state.providerUi || {});
+  const {
+    openLogo,
+    openPersonal,
+    openServices,
+    deleteOpen,
+    businessName,
+    contact,
+    priceRange,
+    logoFile,
+    logoPreview,
+    servicesCopy,
+  } = ui;
 
   const { user, handleLogout } = useContext(UserContext);
 
@@ -61,17 +79,34 @@ export default function ProvidersPrfl() {
     dispatch(fetchProvider());
   }, [dispatch, id]);
 
+  // when selectedProvider or providers change, populate UI with provider values
+  useEffect(() => {
+    const prov = id ? selectedProvider : null;
+    const fallback = providers?.find((p) => String(p._id) === String(id));
+    const toUse = prov ?? fallback ?? selectedProvider ?? null;
+    if (toUse) {
+      dispatch(populateFromProvider(toUse));
+    }
+  }, [dispatch, id, selectedProvider, providers]);
+
   const confirmDelete = () => {
+    // we use selected element (ele) below; dispatch delete thunk
+    if (!ele) {
+      toast.error("No provider selected");
+      dispatch(setDeleteOpen(false));
+      return;
+    }
+
     dispatch(deleteAccount(ele._id))
       .then(() => {
         toast.success("Account deleted successfully");
-        handleLogout();
+        handleLogout?.();
         localStorage.removeItem("token");
         navigate("/", { replace: true });
       })
       .catch(() => toast.error("Failed to delete account"));
 
-    setDeleteOpen(false);
+    dispatch(setDeleteOpen(false));
   };
 
   // determine current provider to show
@@ -131,23 +166,26 @@ export default function ProvidersPrfl() {
       String(ele.user?._id ?? ele.user) === String(user?._id)
   );
 
-  /* ---------------- Logo handlers ---------------- */
+  /* ---------------- Logo handlers (now using redux) ---------------- */
   const openLogoDialog = () => {
-    // set preview from current image if exists
-    setLogoPreview(ele.image || null);
-    setLogoFile(null);
-    setOpenLogo(true);
+    // set preview from current image if exists via populateFromProvider previously, but ensure it's set
+    dispatch(setLogoPreview(ele.image || null));
+    dispatch(setLogoFile(null));
+    dispatch(setOpenLogo(true));
   };
 
+  // handle file input change: keep FileReader here then dispatch preview and file
   const onLogoChange = (e) => {
     const file = e.target.files?.[0] ?? null;
-    setLogoFile(file);
+    dispatch(setLogoFile(file));
     if (!file) {
-      setLogoPreview(ele.image || null);
+      dispatch(setLogoPreview(ele.image || null));
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => setLogoPreview(ev.target.result);
+    reader.onload = (ev) => {
+      dispatch(setLogoPreview(ev.target.result));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -159,47 +197,43 @@ export default function ProvidersPrfl() {
       }
       const fd = new FormData();
       fd.append("image", logoFile);
-      // call update provider: adjust updateProvider thunk to accept { id, formData } as you're already doing
       await dispatch(updateProvider({ id: ele._id, formData: fd })).unwrap();
       toast.success("Logo updated");
-      // refresh list
       dispatch(fetchProvider());
-      setOpenLogo(false);
+      dispatch(setOpenLogo(false));
+      // clear file
+      dispatch(clearLogo());
     } catch (err) {
       console.error("logo update failed", err);
       toast.error(err?.message || "Failed to update logo");
     }
   };
 
-  /* ---------------- Personal handlers ---------------- */
+  /* ---------------- Personal handlers (redux-driven) ---------------- */
   const openPersonalDialog = () => {
-    setBusinessName(ele.businessName || "");
-    setContact(ele.contact || "");
-    setPriceRange(ele.priceRange || "");
-    setOpenPersonal(true);
+    // populate fields using element (populateFromProvider already ran, but ensure fields match)
+    dispatch(setBusinessName(ele.businessName || ""));
+    dispatch(setContact(ele.contact || ""));
+    dispatch(setPriceRange(ele.priceRange || ""));
+    dispatch(setOpenPersonal(true));
   };
 
   // ensure phone starts with +91 and keep digits/spaces trimmed sensibly
   const handlePhoneChange = (value) => {
-    // remove all spaces first
     let v = value.replace(/\s+/g, "");
-    // if user deletes to empty, allow empty
     if (!v) {
-      setContact("");
+      dispatch(setContact(""));
       return;
     }
-    // ensure starts with +91
     if (!v.startsWith("+91")) {
-      // remove any leading + or leading 91
       v = v.replace(/^\+?91/, "");
       v = "+91" + v;
     }
-    setContact(v);
+    dispatch(setContact(v));
   };
 
   const submitPersonal = async () => {
     try {
-      // basic client validation
       if (!businessName?.trim()) {
         toast.error("Business name required");
         return;
@@ -217,74 +251,34 @@ export default function ProvidersPrfl() {
       await dispatch(updateProvider({ id: ele._id, formData: fd })).unwrap();
       toast.success("Profile updated");
       dispatch(fetchProvider());
-      setOpenPersonal(false);
+      dispatch(setOpenPersonal(false));
     } catch (err) {
       console.error("personal update failed", err);
       toast.error(err?.message || "Failed to update profile");
     }
   };
 
-  /* ---------------- Services handlers ---------------- */
+  /* ---------------- Services handlers (redux-driven) ---------------- */
   const openServicesDialog = () => {
     // deep copy the services so user can edit without mutating source
-    setServicesCopy(JSON.parse(JSON.stringify(ele.servicesOffered || [])));
-    setOpenServices(true);
+    dispatch(setServicesCopy(JSON.parse(JSON.stringify(ele.servicesOffered || []))));
+    dispatch(setBusinessName(ele.businessName || ""));
+    dispatch(setContact(ele.contact || ""));
+    dispatch(setPriceRange(ele.priceRange || ""));
+    dispatch(setOpenServices(true));
   };
 
-  const addPetType = () => {
-    setServicesCopy((prev) => [
-      ...prev,
-      {
-        petType: "",
-        subServices: [{ service: "", description: "", price: "" }],
-      },
-    ]);
-  };
-
-  const removePetType = (idx) => {
-    setServicesCopy((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const setPetTypeField = (idx, v) => {
-    setServicesCopy((prev) => {
-      const n = [...prev];
-      n[idx] = { ...n[idx], petType: v };
-      return n;
-    });
-  };
-
-  const addSubService = (gIdx) => {
-    setServicesCopy((prev) => {
-      const n = [...prev];
-      n[gIdx].subServices = n[gIdx].subServices || [];
-      n[gIdx].subServices.push({ service: "", description: "", price: "" });
-      return n;
-    });
-  };
-
-  const removeSub = (gIdx, sIdx) => {
-    setServicesCopy((prev) => {
-      const n = [...prev];
-      n[gIdx].subServices = n[gIdx].subServices.filter((_, i) => i !== sIdx);
-      return n;
-    });
-  };
-
-  const setSubField = (gIdx, sIdx, field, v) => {
-    setServicesCopy((prev) => {
-      const n = [...prev];
-      n[gIdx].subServices = n[gIdx].subServices || [];
-      n[gIdx].subServices[sIdx] = {
-        ...n[gIdx].subServices[sIdx],
-        [field]: v,
-      };
-      return n;
-    });
-  };
+  // action dispatchers below correspond to the slice reducers
+  const addPetTypeHandler = () => dispatch(addPetType());
+  const removePetTypeHandler = (idx) => dispatch(removePetType(idx));
+  const setPetTypeFieldHandler = (idx, v) => dispatch(setPetTypeField({ idx, value: v }));
+  const addSubServiceHandler = (gIdx) => dispatch(addSubService(gIdx));
+  const removeSubHandler = (gIdx, sIdx) => dispatch(removeSubService({ gIdx, sIdx }));
+  const setSubFieldHandler = (gIdx, sIdx, field, v) =>
+    dispatch(setSubField({ gIdx, sIdx, field, value: v }));
 
   const submitServices = async () => {
     try {
-      // basic validation
       if (!Array.isArray(servicesCopy) || servicesCopy.length === 0) {
         toast.error("Add at least one pet type.");
         return;
@@ -306,44 +300,35 @@ export default function ProvidersPrfl() {
         }
       }
 
-      // Build nested FormData same as createProvider did
       const fd = new FormData();
+      fd.append("businessName", (businessName && businessName.trim()) || ele.businessName || "");
+      fd.append("contact", (contact && contact.trim()) || ele.contact || "");
+      fd.append("priceRange", priceRange ?? ele.priceRange ?? "");
 
       (servicesCopy || []).forEach((group, i) => {
-        // petType
         fd.append(`servicesOffered[${i}][petType]`, group.petType || "");
-
-        // ensure subServices array exists
         (group.subServices || []).forEach((sub, j) => {
-          fd.append(
-            `servicesOffered[${i}][subServices][${j}][service]`,
-            sub.service || ""
-          );
-          fd.append(
-            `servicesOffered[${i}][subServices][${j}][description]`,
-            sub.description || ""
-          );
-          // convert price to string (empty allowed)
+          fd.append(`servicesOffered[${i}][subServices][${j}][service]`, sub.service || "");
+          fd.append(`servicesOffered[${i}][subServices][${j}][description]`, sub.description || "");
           fd.append(
             `servicesOffered[${i}][subServices][${j}][price]`,
-            sub.price !== undefined && sub.price !== null
-              ? String(sub.price)
-              : ""
+            sub.price !== undefined && sub.price !== null ? String(sub.price) : ""
           );
         });
       });
 
-      // call updateProvider thunk (keep same signature)
       await dispatch(updateProvider({ id: ele._id, formData: fd })).unwrap();
 
       toast.success("Services updated");
       dispatch(fetchProvider());
-      setOpenServices(false);
+      dispatch(setOpenServices(false));
     } catch (err) {
-      console.error("services update failed", err);
+      console.log("services update failed", err);
       toast.error(err?.message || "Failed to update services");
     }
   };
+
+  const isContactValid = contact ? /^\+91\d{10}$/.test(contact.replace(/\s+/g, "")) : true;
 
   return (
     <div className="min-h-screen w-full px-4 py-10 flex justify-center">
@@ -356,11 +341,7 @@ export default function ProvidersPrfl() {
               title={isOwner ? "Click to update logo" : ""}
             >
               {ele.image ? (
-                <img
-                  src={ele.image}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                />
+                <img src={ele.image} alt={displayName} className="h-full w-full object-cover" />
               ) : (
                 initial
               )}
@@ -375,10 +356,7 @@ export default function ProvidersPrfl() {
 
             {isOwner && (
               <div className="mt-4 flex items-center gap-3">
-                <Button
-                  className="flex items-center gap-2"
-                  onClick={openPersonalDialog}
-                >
+                <Button className="flex items-center gap-2" onClick={openPersonalDialog}>
                   <Edit className="h-4 w-4" />
                   Edit Profile
                 </Button>
@@ -397,38 +375,21 @@ export default function ProvidersPrfl() {
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Email */}
             <a href={`mailto:${ele.user?.email}`} className="block">
-              <InfoRow
-                icon={<Mail />}
-                label="Email"
-                value={ele.user?.email || "Not provided"}
-              />
+              <InfoRow icon={<Mail />} label="Email" value={ele.user?.email || "Not provided"} />
             </a>
 
-            {/* Phone */}
             <a href={`tel:${ele.contact}`} className="block">
-              <InfoRow
-                icon={<Phone />}
-                label="Phone"
-                value={ele.contact || "Not provided"}
-              />
+              <InfoRow icon={<Phone />} label="Phone" value={ele.contact || "Not provided"} />
             </a>
 
-            {/* Location */}
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                ele.location?.address
-              )}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ele.location?.address)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
             >
-              <InfoRow
-                icon={<MapPin />}
-                label="Location"
-                value={ele.location?.address || "Not available"}
-              />
+              <InfoRow icon={<MapPin />} label="Location" value={ele.location?.address || "Not available"} />
             </a>
           </CardContent>
         </Card>
@@ -459,54 +420,34 @@ export default function ProvidersPrfl() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {Array.isArray(ele.servicesOffered) &&
-            ele.servicesOffered.length ? (
+            {Array.isArray(ele.servicesOffered) && ele.servicesOffered.length ? (
               ele.servicesOffered.map((svc) => (
-                <div
-                  key={svc._id ?? svc.petType}
-                  className="border rounded-lg p-4 bg-white"
-                >
+                <div key={svc._id ?? svc.petType} className="border rounded-lg p-4 bg-white">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <PawPrint className="h-5 w-5 text-slate-600" />
                       <h4 className="text-lg font-semibold">{svc.petType}</h4>
                     </div>
                     <Badge variant="secondary" className="text-sm">
-                      {Array.isArray(svc.subServices)
-                        ? svc.subServices.length
-                        : 0}{" "}
-                      item
-                      {Array.isArray(svc.subServices) &&
-                      svc.subServices.length !== 1
-                        ? "s"
-                        : ""}
+                      {Array.isArray(svc.subServices) ? svc.subServices.length : 0} item
+                      {Array.isArray(svc.subServices) && svc.subServices.length !== 1 ? "s" : ""}
                     </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Array.isArray(svc.subServices) &&
-                    svc.subServices.length ? (
+                    {Array.isArray(svc.subServices) && svc.subServices.length ? (
                       svc.subServices.map((sub) => (
-                        <div
-                          key={sub._id ?? `${svc._id}-${sub.service}`}
-                          className="p-3 rounded-lg border bg-gray-50 hover:shadow-sm"
-                        >
+                        <div key={sub._id ?? `${svc._id}-${sub.service}`} className="p-3 rounded-lg border bg-gray-50 hover:shadow-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="font-medium">{sub.service}</p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {sub.description || "No description"}
-                              </p>
+                              <p className="text-sm text-gray-600 mt-1">{sub.description || "No description"}</p>
                             </div>
 
                             <div className="text-right">
                               <p className="font-semibold">
                                 {typeof sub.price === "number"
-                                  ? sub.price.toLocaleString("en-IN", {
-                                      style: "currency",
-                                      currency: "INR",
-                                      maximumFractionDigits: 0,
-                                    })
+                                  ? sub.price.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })
                                   : sub.price ?? "—"}
                               </p>
                               <p className="text-xs text-gray-500">approx.</p>
@@ -514,27 +455,13 @@ export default function ProvidersPrfl() {
                           </div>
 
                           <div className="mt-3 flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => alert(`Book ${sub.service}`)}
-                            >
-                              Book
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => alert(`More about ${sub.service}`)}
-                            >
-                              Details
-                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => alert(`Book ${sub.service}`)}>Book</Button>
+                            <Button size="sm" variant="outline" onClick={() => alert(`More about ${sub.service}`)}>Details</Button>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-500">
-                        No sub-services for this pet type
-                      </p>
+                      <p className="text-gray-500">No sub-services for this pet type</p>
                     )}
                   </div>
                 </div>
@@ -544,37 +471,28 @@ export default function ProvidersPrfl() {
             )}
           </CardContent>
         </Card>
+
         {/* DELETE ACCOUNT BUTTON */}
         <div className="flex justify-center mt-10">
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteOpen(true)}
-            className="px-6 py-2"
-          >
+          <Button variant="destructive" onClick={() => dispatch(setDeleteOpen(true))} className="px-6 py-2">
             Delete Account
           </Button>
         </div>
       </div>
 
       {/* ========== Logo Dialog ========== */}
-      <Dialog open={openLogo} onOpenChange={setOpenLogo}>
+      <Dialog open={openLogo} onOpenChange={(v) => dispatch(setOpenLogo(v))}>
         <DialogContent className="sm:max-w-sm max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Logo</DialogTitle>
-            <DialogDescription>
-              Upload a new business logo for your profile.
-            </DialogDescription>
+            <DialogDescription>Upload a new business logo for your profile.</DialogDescription>
           </DialogHeader>
 
           <div className="mt-3 space-y-3">
             <input type="file" accept="image/*" onChange={onLogoChange} />
             {logoPreview && (
               <div className="mt-2">
-                <img
-                  src={logoPreview}
-                  alt="preview"
-                  className="h-28 w-28 rounded object-cover"
-                />
+                <img src={logoPreview} alt="preview" className="h-28 w-28 rounded object-cover" />
               </div>
             )}
           </div>
@@ -588,167 +506,151 @@ export default function ProvidersPrfl() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== Personal Details Dialog ========== */}
-      <Dialog open={openPersonal} onOpenChange={setOpenPersonal}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Update your business details (phone auto +91).
-            </DialogDescription>
+      {/* ========== Personal Dialog ========== */}
+      <Dialog open={openPersonal} onOpenChange={(v) => dispatch(setOpenPersonal(v))}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto transform-gpu motion-safe:animate-fade-in">
+          <DialogHeader className="pb-2">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-orange-200 to-orange-400 flex items-center justify-center text-white text-lg font-bold shadow-md overflow-hidden">
+                {displayName ? displayName[0]?.toUpperCase() : "P"}
+              </div>
+
+              <div>
+                <DialogTitle className="text-lg font-semibold">Edit Profile</DialogTitle>
+                <DialogDescription className="text-sm text-neutral-500">Update your business details.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="mt-2 space-y-3">
+          <div className="mt-4 grid gap-4">
             <div>
-              <label className="text-sm">Business Name</label>
-              <input
-                className="border p-2 rounded w-full mt-1"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-              />
+              <label className="text-xs font-medium text-neutral-600 mb-1 inline-block">Business Name</label>
+              <div className="mt-1 relative">
+                <input value={businessName} onChange={(e) => dispatch(setBusinessName(e.target.value))} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm shadow-sm" placeholder="e.g. Happy Paws Clinic" />
+              </div>
             </div>
 
             <div>
-              <label className="text-sm">Contact</label>
-              <input
-                className="border p-2 rounded w-full mt-1"
-                value={contact}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="+91xxxxxxxxxx"
-              />
+              <label className="text-xs font-medium text-neutral-600 mb-1 inline-block">Contact</label>
+              <div className="mt-1 relative">
+                <input value={contact} onChange={(e) => handlePhoneChange(e.target.value)} className="w-full rounded-lg border border-neutral-200 px-10 py-2 text-sm shadow-sm" placeholder="+91xxxxxxxxxx" />
+              </div>
             </div>
 
             <div>
-              <label className="text-sm">Price Range</label>
-              <input
-                className="border p-2 rounded w-full mt-1"
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-              />
+              <label className="text-xs font-medium text-neutral-600 mb-1 inline-block">Price Range</label>
+              <input value={priceRange} onChange={(e) => dispatch(setPriceRange(e.target.value))} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm shadow-sm" placeholder="e.g. ₹500 - ₹2,000" />
+              <p className="mt-2 text-xs text-neutral-500">Optional — a short hint visitors see on your profile.</p>
             </div>
           </div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-6 flex items-center justify-end gap-3">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className="px-4 py-2">Cancel</Button>
             </DialogClose>
-            <Button onClick={submitPersonal}>Save Changes</Button>
+
+            <Button onClick={submitPersonal} disabled={!isContactValid} className={`px-4 py-2 rounded-md text-white font-medium shadow-sm ${isContactValid ? "bg-gradient-to-r from-orange-500 to-orange-600" : "opacity-60 cursor-not-allowed"}`}>
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* ========== Services Dialog ========== */}
-      <Dialog open={openServices} onOpenChange={setOpenServices}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Services Offered</DialogTitle>
-            <DialogDescription>
-              Add / modify pet types and sub-services.
-            </DialogDescription>
+      <Dialog open={openServices} onOpenChange={(v) => dispatch(setOpenServices(v))}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto transform-gpu motion-safe:animate-fade-in">
+          <DialogHeader className="pb-2">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <DialogTitle className="text-lg font-semibold">Edit Services</DialogTitle>
+                <DialogDescription className="text-sm text-neutral-500 mt-1">Add or modify pet types and sub-services. Make sure each pet type has at least one service.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="mt-3 space-y-3">
-            {servicesCopy.map((group, gi) => (
-              <div key={gi} className="border rounded p-3 bg-gray-50">
-                <div className="flex items-center gap-2">
-                  <input
-                    value={group.petType}
-                    onChange={(e) => setPetTypeField(gi, e.target.value)}
-                    placeholder="Pet type (Dog, Cat...)"
-                    className="flex-1 border p-2 rounded"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removePetType(gi)}
-                  >
-                    Remove
-                  </Button>
-                </div>
+          <div className="mt-4 space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {servicesCopy.length === 0 ? <div className="text-sm text-neutral-500">No pet types yet</div> : servicesCopy.map((g, idx) => (<span key={idx} className="px-3 py-1 rounded-full bg-slate-50 border border-slate-100 text-sm text-slate-700 shadow-sm">{g.petType || `Pet ${idx + 1}`}</span>))}
+            </div>
 
-                <div className="mt-2 space-y-2">
-                  {group.subServices?.map((sub, si) => (
-                    <div
-                      key={si}
-                      className="grid grid-cols-3 gap-2 items-start"
-                    >
-                      <input
-                        value={sub.service}
-                        onChange={(e) =>
-                          setSubField(gi, si, "service", e.target.value)
-                        }
-                        placeholder="Service name"
-                        className="border p-2 rounded"
-                      />
-                      <input
-                        value={sub.description}
-                        onChange={(e) =>
-                          setSubField(gi, si, "description", e.target.value)
-                        }
-                        placeholder="Short description"
-                        className="border p-2 rounded"
-                      />
-                      <div className="flex gap-2">
-                        <input
-                          value={sub.price}
-                          onChange={(e) =>
-                            setSubField(gi, si, "price", e.target.value)
-                          }
-                          placeholder="Price"
-                          className="border p-2 rounded flex-1"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeSub(gi, si)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
+            <div className="space-y-3">
+              {servicesCopy.map((group, gi) => (
+                <div key={gi} className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs text-neutral-600">Pet type</label>
+                      <input value={group.petType} onChange={(e) => setPetTypeFieldHandler(gi, e.target.value)} placeholder="Dog, Cat, etc." className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm shadow-sm" />
                     </div>
-                  ))}
-                </div>
 
-                <div className="mt-2 flex justify-end">
-                  <Button size="sm" onClick={() => addSubService(gi)}>
-                    + Add sub-service
-                  </Button>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => removePetTypeHandler(gi)}>Remove</Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    {(group.subServices || []).map((sub, si) => (
+                      <div key={si} className="grid grid-cols-12 gap-2 items-start">
+                        <div className="col-span-5">
+                          <label className="text-xs text-neutral-600">Service</label>
+                          <input value={sub.service} onChange={(e) => setSubFieldHandler(gi, si, "service", e.target.value)} placeholder="Service name (e.g. Full Groom)" className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm shadow-sm" />
+                        </div>
+
+                        <div className="col-span-5">
+                          <label className="text-xs text-neutral-600">Description</label>
+                          <input value={sub.description} onChange={(e) => setSubFieldHandler(gi, si, "description", e.target.value)} placeholder="Short description (optional)" className="mt-1 w-full rounded-md border border-neutral-200 px-3 py-2 text-sm shadow-sm" />
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="text-xs text-neutral-600">Price</label>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-sm px-2 py-1 rounded-l border border-r-0 border-neutral-200 bg-neutral-50">₹</span>
+                            <input value={sub.price} onChange={(e) => setSubFieldHandler(gi, si, "price", e.target.value)} placeholder="0" className="w-full rounded-r-md border border-neutral-200 px-2 py-2 text-sm" />
+                          </div>
+                          <div className="mt-1 text-xs text-neutral-400">approx.</div>
+                        </div>
+
+                        <div className="col-span-12 flex justify-end">
+                          <Button size="sm" variant="outline" onClick={() => removeSubHandler(gi, si)}>Remove service</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex justify-end">
+                    <Button size="sm" onClick={() => addSubServiceHandler(gi)}>+ Add sub-service</Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
             <div className="flex justify-end">
-              <Button onClick={addPetType}>+ Add pet type</Button>
+              <Button onClick={() => addPetTypeHandler()}>+ Add pet type</Button>
             </div>
           </div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 flex items-center justify-end gap-3">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
+
             <Button onClick={submitServices}>Save Services</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ------------------- DELETE ACCOUNT DIALOG ------------------- */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      {/* DELETE ACCOUNT DIALOG */}
+      <Dialog open={deleteOpen} onOpenChange={(v) => dispatch(setDeleteOpen(v))}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Provider Account?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Your provider profile, services and
-              bookings will be permanently deleted.
-            </DialogDescription>
+            <DialogDescription>This action cannot be undone. Your provider profile, services and bookings will be permanently deleted.</DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Yes, Delete Account
-            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>Yes, Delete Account</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

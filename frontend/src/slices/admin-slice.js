@@ -32,7 +32,7 @@ export const deleteUser = createAsyncThunk(
         },
       });
       console.log("User deleted:", res.data);
-      return res.data; // just message / deleted user, not list
+      return res.data; 
     } catch (err) {
       console.error("Delete user error:", err);
       return rejectWithValue(
@@ -65,7 +65,6 @@ export const fetchProvider = createAsyncThunk(
       const res = await axios.get(`/providers`, {
         headers: { Authorization: localStorage.getItem("token") },
       });
-      // console.log("providers",res.data);
       return res.data;
     } catch (err) {
       console.log(err.response.data.error);
@@ -78,9 +77,7 @@ export const fetchSingleProvider = createAsyncThunk(
   "admin/fetchSingleProvider",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/providers/${id}`, {
-        headers: { Authorization: localStorage.getItem("token") },
-      });
+      const res = await axios.get(`/providers/${id}`)
       console.log(res.data);
       return res.data;
     } catch (err) {
@@ -112,17 +109,6 @@ export const approveProvider = createAsyncThunk(
   }
 );
 
-// export const deleteProvider = createAsyncThunk(
-//   "admin/deleteProvider", async (id, {rejectWithValue}) => {
-//     try{
-//       const res = await axios.delete()
-//     }catch(err){
-
-//     }
-//   }
-// )
-
-/* ---------- HELPERS ---------- */
 
 const normalizeUsers = (payload) => {
   if (Array.isArray(payload)) return payload;

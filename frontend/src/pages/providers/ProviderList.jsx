@@ -70,7 +70,7 @@ export default function ProviderList() {
       return;
     }
     dispatch(setSelectedProvider(provider));
-    navigate(`/admin/provider/${provider._id}`);
+    navigate(`/admin/${provider._id}/provider`);
   };
 
   const filteredUsers = users.filter((ele) => ele.role === "provider");
