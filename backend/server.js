@@ -40,6 +40,7 @@ app.delete('/user/account/delete/:id', authenticateUser, authorizeUser(["admin"]
 // service providers
 app.post('/providers/register',authenticateUser,uploadCloudinary.single('image'), ProviderController.create)
 app.get('/providers', authenticateUser, authorizeUser(["admin", "user", "provider"]), ProviderController.list)
+app.get('/providers/nearby', ProviderController.nearby);
 app.put('/provider/approve/:id', authenticateUser, authorizeUser(["admin"]), ProviderController.approve)
 app.put('/provider/account/update/:id', authenticateUser,authorizeUser(["provider", "admin"]),uploadCloudinary.single('image'), ProviderController.modify)
 app.delete('/provider/account/remove/:id', authenticateUser, authorizeUser(["admin"]), ProviderController.remove)
@@ -49,7 +50,7 @@ app.delete('/provider/account/delete/:id', authenticateUser, authorizeUser(["pro
 app.post('/providers/subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.subscription)
 app.get('/providers/my-subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.mySubscription)
 app.get('/providers/subscriptions', authenticateUser, authorizeUser(["admin"]), providerSubscriptionController.allSubscriptions)
-app.get('/providers/:id', authenticateUser,authorizeUser(["provider", "admin"]), ProviderController.account)
+app.get('/providers/:id', authenticateUser, ProviderController.account)
 
 // bookings
 app.post('/bookings/create', authenticateUser, authorizeUser(["user"]), BookingController.create);
