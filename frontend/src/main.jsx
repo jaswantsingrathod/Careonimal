@@ -5,6 +5,14 @@ import { BrowserRouter } from "react-router-dom";
 import AuthenticationProvider from "./components/Authentication-Provider.jsx";
 import {Provider} from "react-redux";
 import createStore from "./store/store.js";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const darkTheme = createTheme({
+  palette: { mode: 'dark' },
+  components: {
+  },
+});
+
 
 const store = createStore();
 console.log("store", store.getState());
@@ -15,10 +23,12 @@ store.subscribe(() => {
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <Provider store = {store}>
+    <ThemeProvider theme={darkTheme}>
+      <Provider store = {store}>
       <AuthenticationProvider>
       <App />
     </AuthenticationProvider>
     </Provider>
+    </ThemeProvider>
   </BrowserRouter>
 );

@@ -90,7 +90,6 @@ export default function ProvidersPrfl() {
   }, [dispatch, id, selectedProvider, providers]);
 
   const confirmDelete = () => {
-    // we use selected element (ele) below; dispatch delete thunk
     if (!ele) {
       toast.error("No provider selected");
       dispatch(setDeleteOpen(false));
@@ -168,13 +167,11 @@ export default function ProvidersPrfl() {
 
   /* ---------------- Logo handlers (now using redux) ---------------- */
   const openLogoDialog = () => {
-    // set preview from current image if exists via populateFromProvider previously, but ensure it's set
     dispatch(setLogoPreview(ele.image || null));
     dispatch(setLogoFile(null));
     dispatch(setOpenLogo(true));
   };
 
-  // handle file input change: keep FileReader here then dispatch preview and file
   const onLogoChange = (e) => {
     const file = e.target.files?.[0] ?? null;
     dispatch(setLogoFile(file));
@@ -201,7 +198,6 @@ export default function ProvidersPrfl() {
       toast.success("Logo updated");
       dispatch(fetchProvider());
       dispatch(setOpenLogo(false));
-      // clear file
       dispatch(clearLogo());
     } catch (err) {
       console.error("logo update failed", err);
@@ -211,14 +207,12 @@ export default function ProvidersPrfl() {
 
   /* ---------------- Personal handlers (redux-driven) ---------------- */
   const openPersonalDialog = () => {
-    // populate fields using element (populateFromProvider already ran, but ensure fields match)
     dispatch(setBusinessName(ele.businessName || ""));
     dispatch(setContact(ele.contact || ""));
     dispatch(setPriceRange(ele.priceRange || ""));
     dispatch(setOpenPersonal(true));
   };
 
-  // ensure phone starts with +91 and keep digits/spaces trimmed sensibly
   const handlePhoneChange = (value) => {
     let v = value.replace(/\s+/g, "");
     if (!v) {
@@ -260,7 +254,6 @@ export default function ProvidersPrfl() {
 
   /* ---------------- Services handlers (redux-driven) ---------------- */
   const openServicesDialog = () => {
-    // deep copy the services so user can edit without mutating source
     dispatch(setServicesCopy(JSON.parse(JSON.stringify(ele.servicesOffered || []))));
     dispatch(setBusinessName(ele.businessName || ""));
     dispatch(setContact(ele.contact || ""));
@@ -268,7 +261,6 @@ export default function ProvidersPrfl() {
     dispatch(setOpenServices(true));
   };
 
-  // action dispatchers below correspond to the slice reducers
   const addPetTypeHandler = () => dispatch(addPetType());
   const removePetTypeHandler = (idx) => dispatch(removePetType(idx));
   const setPetTypeFieldHandler = (idx, v) => dispatch(setPetTypeField({ idx, value: v }));
@@ -394,18 +386,6 @@ export default function ProvidersPrfl() {
           </CardContent>
         </Card>
 
-        {/* STATS */}
-        <Card className="shadow-md border-none">
-          <CardHeader>
-            <CardTitle>Statistics</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4 text-center">
-            <StatBox label="Total Bookings" value={ele.totalBookings || 0} />
-            <StatBox label="Completed" value={ele.completed || 0} />
-            <StatBox label="Pending" value={ele.pending || 0} />
-          </CardContent>
-        </Card>
-
         {/* SERVICES */}
         <Card className="shadow-md border-none">
           <CardHeader>
@@ -454,10 +434,7 @@ export default function ProvidersPrfl() {
                             </div>
                           </div>
 
-                          <div className="mt-3 flex items-center gap-2">
-                            <Button size="sm" variant="ghost" onClick={() => alert(`Book ${sub.service}`)}>Book</Button>
-                            <Button size="sm" variant="outline" onClick={() => alert(`More about ${sub.service}`)}>Details</Button>
-                          </div>
+                          {/* Book/Details buttons removed per request — this area shows details only */}
                         </div>
                       ))
                     ) : (

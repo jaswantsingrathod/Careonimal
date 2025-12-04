@@ -1,3 +1,6 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -7,153 +10,348 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "react-toastify";
+import { PawPrint } from "lucide-react";
 
+import { BarChart } from "@mui/x-charts/BarChart";
+import { useTheme } from "@mui/material/styles";
 
+import { fetchProvider } from "../../slices/admin-slice";
+import {
+  fetchBookingsForProvider,
+  updateBookingStatus,
+} from "../../slices/booking-slice";
+import { setOpenServices } from "../../slices/Provider-slice";
+
+/* -------------------- helpers -------------------- */
+const startOfDay = (d) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+const sameMonthYear = (d1, d2) =>
+  d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+
+/* -------------------- component -------------------- */
 export default function ProviderDashboard() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const theme = useTheme();
+
+  // state for quick-action processing
+  const [processingId, setProcessingId] = useState(null);
+
+  // selectors
+  const providers = useSelector((s) => s.admin?.providers ?? [], shallowEqual);
+  const selectedProvider = useSelector(
+    (s) => s.admin?.selectedProvider ?? null,
+    shallowEqual
+  );
+  const bookings = useSelector((s) => s.booking?.list ?? [], shallowEqual);
+  const bookingsLoading = useSelector((s) => s.booking?.loading ?? false);
+  const authUser = useSelector((s) => s.auth?.user ?? null, shallowEqual);
+
+  // resolve provider (if needed)
+  const provider = useMemo(() => {
+    if (selectedProvider && selectedProvider._id) return selectedProvider;
+    if (!authUser) return null;
+    return (
+      providers.find((p) => {
+        const provUser = p.user?._id ?? p.user;
+        return provUser && String(provUser) === String(authUser._id);
+      }) ?? null
+    );
+  }, [selectedProvider, providers, authUser]);
+
+  // initial loads
+  useEffect(() => {
+    dispatch(fetchProvider());
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchBookingsForProvider());
+  }, [dispatch, provider?._id]);
+
+  // normalize bookingStatus
+  const normalizedBookings = useMemo(
+    () =>
+      bookings.map((b) => ({
+        ...b,
+        bookingStatus: b.bookingStatus ?? b.status ?? "pending",
+      })),
+    [bookings]
+  );
+
+  // stats
+  const stats = useMemo(() => {
+    const total = normalizedBookings.length;
+    const completed = normalizedBookings.filter(
+      (b) => b.bookingStatus === "completed"
+    ).length;
+    const confirmed = normalizedBookings.filter(
+      (b) => b.bookingStatus === "confirmed"
+    ).length;
+    const pending = normalizedBookings.filter(
+      (b) => b.bookingStatus === "pending"
+    ).length;
+    return { total, completed, confirmed, pending };
+  }, [normalizedBookings]);
+
+  // chart data: last 7 days completed counts
+  const chartData = useMemo(() => {
+    const today = startOfDay(new Date());
+    const days = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d,
+        label: d.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+        }),
+        count: 0,
+      };
+    });
+
+    normalizedBookings.forEach((b) => {
+      if (!b.bookingDate) return;
+      const bd = startOfDay(new Date(b.bookingDate));
+      const idx = days.findIndex((x) => x.date.getTime() === bd.getTime());
+      if (idx >= 0 && b.bookingStatus === "completed") days[idx].count++;
+    });
+
+    // MUI x-charts wants xAxis.data (labels) and series.data arrays of same length
+    const labels = days.map((d) => d.label);
+    const values = days.map((d) => d.count);
+    return { labels, values, days };
+  }, [normalizedBookings]);
+
+  // counts for today and month
+  const counts = useMemo(() => {
+    const now = new Date();
+    const todayStart = startOfDay(now).getTime();
+    const todayCompleted = normalizedBookings.filter((b) => {
+      if (!b.bookingDate) return false;
+      const bd = new Date(b.bookingDate).getTime();
+      return bd >= todayStart && b.bookingStatus === "completed";
+    }).length;
+
+    const monthCompleted = normalizedBookings.filter((b) => {
+      if (!b.bookingDate) return false;
+      const bd = new Date(b.bookingDate);
+      return sameMonthYear(bd, now) && b.bookingStatus === "completed";
+    }).length;
+
+    return { todayCompleted, monthCompleted };
+  }, [normalizedBookings]);
+
+  // lists
+  const pendingList = normalizedBookings
+    .filter((b) => b.bookingStatus === "pending")
+    .slice(0, 6);
+  const upcomingList = normalizedBookings
+    .filter((b) => b.bookingStatus === "confirmed")
+    .slice(0, 6);
+
+  // navigation
+  const goToBookings = (filterStatus) =>
+    navigate("/provider/bookings", { state: { filterStatus } });
+
+  // small confirm helper with toast
+  const confirmWithToast = (message, processingText = "Processing...") => {
+    const ok = window.confirm(message);
+    if (ok) toast.info(processingText, { autoClose: 1200 });
+    else toast.info("Action cancelled", { autoClose: 800 });
+    return ok;
+  };
+
+  // Quick accept/decline with processing state + toast + refresh
+  const runQuickAction = async (bookingId, status, successMsg) => {
+    if (!confirmWithToast(`Are you sure?`, `${successMsg} — processing...`))
+      return;
+    setProcessingId(bookingId);
+    try {
+      await dispatch(updateBookingStatus({ id: bookingId, status })).unwrap();
+      toast.success(successMsg);
+      await dispatch(fetchBookingsForProvider());
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message || err?.message || "Action failed"
+      );
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleQuickAccept = (b) =>
+    runQuickAction(b._id, "confirmed", "Accepted");
+  const handleQuickDecline = (b) =>
+    runQuickAction(b._id, "cancelled", "Declined");
+
+  /* -------------------- UI -------------------- */
   return (
-    <div className="min-h-screen  px-6 py-10">
-      {/* Header */}
+    <div className="min-h-screen px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
       <div className="max-w-7xl mx-auto mb-6">
         <div className="flex items-center justify-between gap-6">
-          <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">Dashboard</h1>
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Provider Dashboard
+            </h1>
             <p className="text-sm text-slate-600 mt-1">
-              Plan, prioritize, and accomplish your bookings with ease.
+              Manage bookings, services and availability — all in one place.
             </p>
           </div>
-
-          <div className="hidden sm:flex items-center gap-4">
-            <div className="w-56 h-14 rounded-full overflow-hidden shadow-lg border">
-              <img
-                src="/mnt/data/Screenshot 2025-11-23 034956.png"
-                alt="header"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+          <div className="hidden sm:flex items-center gap-4" />
         </div>
       </div>
 
-      {/* Main grid */}
       <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left (main) */}
+        {/* Left */}
         <section className="lg:col-span-9 space-y-6">
-          {/* Stats row */}
+          {/* stat cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="overflow-hidden rounded-2xl shadow-sm">
-              <CardContent className="bg-gradient-to-br from-emerald-600 to-emerald-500 text-white p-5">
-                <div className="flex items-start justify-between">
+            <Card
+              onClick={() => goToBookings()}
+              className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition"
+            >
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs uppercase tracking-wider opacity-90">Total Bookings</div>
-                    <div className="mt-2 text-3xl font-extrabold">—</div>
-                    <div className="mt-2 text-xs opacity-90">Increased from last month</div>
+                    <div className="text-xs uppercase tracking-wide text-orange-500 font-semibold">
+                      Total Bookings
+                    </div>
+                    <div className="mt-2 text-3xl font-extrabold text-slate-900">
+                      {stats.total}
+                    </div>
+                    <div className="mt-1 text-xs text-slate-500">All time</div>
                   </div>
-                  <div className="flex items-center justify-center w-10 h-10 rounded bg-white/20">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white">
-                      <path d="M5 12h14" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 5l7 7-7 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-5">
-                <div className="text-xs text-slate-500">Ended Bookings</div>
-                <div className="mt-2 text-2xl font-bold">—</div>
-                <div className="mt-2 text-xs text-slate-400">Previous period</div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-5">
-                <div className="text-xs text-slate-500">Running</div>
-                <div className="mt-2 text-2xl font-bold">—</div>
-                <div className="mt-2 text-xs text-slate-400">Active now</div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-5">
-                <div className="text-xs text-slate-500">Pending</div>
-                <div className="mt-2 text-2xl font-bold text-amber-600">—</div>
-                <div className="mt-2 text-xs text-slate-400">Awaiting approval</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Analytics + Reminder row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card className="lg:col-span-2 rounded-2xl shadow-sm">
-              <CardHeader>
-                <CardTitle>Booking Analytics</CardTitle>
-                <CardDescription className="text-sm">Visual overview of bookings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mt-2 h-44 rounded-lg bg-white border border-dashed border-slate-100 flex items-center justify-center text-slate-400">
-                  Chart placeholder
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl shadow-sm">
-              <CardHeader>
-                <CardTitle>Reminders</CardTitle>
-                <CardDescription className="text-sm">Upcoming pickups & meetings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-3">
-                  <div className="p-3 rounded-lg bg-slate-50 border">
-                    <div className="text-sm font-medium">No reminders</div>
-                    <div className="text-xs text-slate-500 mt-1">You're all caught up</div>
+                  <div className="bg-orange-100 text-orange-600 p-3 rounded-full">
+                    <PawPrint className="w-5 h-5" />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Progress / Team row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="md:col-span-2 rounded-2xl shadow-sm">
-              <CardHeader>
-                <CardTitle>Team & Contacts</CardTitle>
-                <CardDescription className="text-sm">Your team and collaborators</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="text-sm text-slate-500 text-center py-8">No team members</div>
+            <Card
+              onClick={() => goToBookings("completed")}
+              className="rounded-2xl shadow-sm cursor-pointer hover:shadow-md transform hover:-translate-y-1 transition"
+            >
+              <CardContent className="p-5">
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">
+                    Completed
+                  </div>
+                  <div className="mt-2 text-2xl font-bold">
+                    {stats.completed}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Past bookings
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl shadow-sm">
-              <CardHeader>
-                <CardTitle>Today's Progress</CardTitle>
-                <CardDescription className="text-sm">Completion rate</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-28 rounded-lg bg-white border border-dashed border-slate-100 flex items-center justify-center text-slate-400">
-                  Progress widget
+            <Card
+              onClick={() => goToBookings("confirmed")}
+              className="rounded-2xl shadow-sm cursor-pointer hover:shadow-md transform hover:-translate-y-1 transition"
+            >
+              <CardContent className="p-5">
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-teal-600 font-semibold">
+                    Confirmed
+                  </div>
+                  <div className="mt-2 text-2xl font-bold">
+                    {stats.confirmed}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">Upcoming</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              onClick={() => goToBookings("pending")}
+              className="rounded-2xl shadow-sm cursor-pointer hover:shadow-md transform hover:-translate-y-1 transition"
+            >
+              <CardContent className="p-5">
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-amber-500 font-semibold">
+                    Pending
+                  </div>
+                  <div className="mt-2 text-2xl font-bold text-amber-600">
+                    {stats.pending}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Needs your action
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Bookings lists */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Quick lists */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="rounded-2xl shadow-sm">
               <CardHeader>
-                <CardTitle>Pending Bookings</CardTitle>
-                <CardDescription className="text-sm">Approve or decline new requests</CardDescription>
+                <CardTitle>Pending Requests</CardTitle>
+                <CardDescription className="text-sm">
+                  Recent requests requiring approval
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-56">
-                  <div className="flex items-center justify-center h-full text-sm text-slate-500">
-                    No pending bookings
+                  <div className="space-y-3">
+                    {bookingsLoading ? (
+                      <div className="text-center text-sm text-slate-500 py-8">
+                        Loading...
+                      </div>
+                    ) : pendingList.length === 0 ? (
+                      <div className="text-center text-sm text-slate-500 py-8">
+                        No pending requests
+                      </div>
+                    ) : (
+                      pendingList.map((b) => (
+                        <div
+                          key={b._id}
+                          className="flex items-center justify-between p-3 rounded-lg border bg-white"
+                        >
+                          <div>
+                            <div className="font-semibold text-sm">
+                              {b.user?.username || b.user?.email || "Customer"}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {new Date(b.bookingDate).toLocaleDateString()} •{" "}
+                              {b.timeSlot}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              {b.petType} — {b.service}
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              size="sm"
+                              disabled={processingId === b._id}
+                              onClick={() => handleQuickAccept(b)}
+                            >
+                              {processingId === b._id
+                                ? "Processing..."
+                                : "Accept"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={processingId === b._id}
+                              onClick={() => handleQuickDecline(b)}
+                            >
+                              {processingId === b._id
+                                ? "Processing..."
+                                : "Decline"}
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -161,49 +359,160 @@ export default function ProviderDashboard() {
 
             <Card className="rounded-2xl shadow-sm">
               <CardHeader>
-                <CardTitle>Previous Bookings</CardTitle>
-                <CardDescription className="text-sm">History & records</CardDescription>
+                <CardTitle>Upcoming</CardTitle>
+                <CardDescription className="text-sm">
+                  Next scheduled bookings
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-sm text-slate-500 text-center py-8">No previous bookings</div>
+                <div className="h-56 flex flex-col gap-3 overflow-auto">
+                  {upcomingList.length === 0 ? (
+                    <div className="text-sm text-slate-500 text-center">
+                      No upcoming bookings
+                    </div>
+                  ) : (
+                    upcomingList.map((next) => (
+                      <div
+                        key={next._id}
+                        className="p-3 rounded-lg border bg-white w-full"
+                      >
+                        <div className="font-medium">
+                          {next.user?.username || next.user?.email}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {new Date(next.bookingDate).toLocaleDateString()} •{" "}
+                          {next.timeSlot}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-2">
+                          {next.petType} — {next.service}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Chart */}
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-orange-600">
+                Completed Bookings — Last 7 days
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-500">
+                Today: {counts.todayCompleted} • This month:{" "}
+                {counts.monthCompleted}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <div className="w-full h-[260px]">
+                <div className="w-full h-full rounded-lg p-4 bg-slate-900">
+                  <BarChart
+                    xAxis={[{ id: "days", data: chartData.labels }]}
+                    series={[
+                      {
+                        data: chartData.values,
+                        label: "Completed",
+                        color: "#fb923c", // orange-400
+                      },
+                    ]}
+                    height={220}
+                    slotProps={{
+                      legend: { hidden: true }, // no warning + minimal UI
+                    }}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
-        {/* Right column */}
+        {/* Right */}
         <aside className="lg:col-span-3 space-y-6">
           <Card className="rounded-2xl shadow-sm">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription className="text-sm">
+                Recent status changes and actions
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-3">
-                <Button className="w-full">Add Service</Button>
-                <Button variant="outline" className="w-full">Manage Availability</Button>
-                <Button variant="ghost" className="w-full">Settings</Button>
+              <div className="space-y-3">
+                {normalizedBookings.slice(0, 6).map((b) => (
+                  <div
+                    key={b._id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-white"
+                  >
+                    <div>
+                      <div className="text-sm font-medium">
+                        {b.user?.username || b.user?.email}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {b.petType} — {b.service}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="text-xs">
+                        <Badge className="capitalize">{b.bookingStatus}</Badge>
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {new Date(b.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-2xl shadow-sm border border-orange-100">
             <CardHeader>
-              <CardTitle>Upcoming Booking</CardTitle>
-              <CardDescription className="text-sm">Next scheduled appointment</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-slate-500 text-center py-6">No upcoming bookings</div>
-            </CardContent>
-          </Card>
+              <CardTitle className="text-orange-700 font-semibold flex items-center gap-2">
+                <span className="text-xl">🐾</span> Helpful Tips
+              </CardTitle>
 
-          <Card className="rounded-2xl shadow-sm">
-            <CardHeader>
-              <CardTitle>Time Tracker</CardTitle>
+              <CardDescription className="text-sm text-orange-600 leading-snug">
+                Little habits that make pet parents feel cared for.
+              </CardDescription>
             </CardHeader>
+
             <CardContent>
-              <div className="h-24 rounded-lg bg-white border border-dashed border-slate-100 flex items-center justify-center text-slate-400">
-                Time tracker placeholder
-              </div>
+              <ul className="text-sm space-y-3 text-orange-700">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500">•</span>
+                  <span className="leading-snug">
+                    Keep your{" "}
+                    <span className="font-semibold">availability updated</span>{" "}
+                    so owners know when you're free.
+                  </span>
+                </li>
+
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500">•</span>
+                  <span className="leading-snug">
+                    Reply within <span className="font-semibold">24 hours</span>{" "}
+                    — quick responses build trust instantly.
+                  </span>
+                </li>
+
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500">•</span>
+                  <span className="leading-snug">
+                    Add a small greeting or friendly note. Warmth makes pet
+                    parents feel connected 💛.
+                  </span>
+                </li>
+
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500">•</span>
+                  <span className="leading-snug">
+                    Remember: every booking is someone’s furry family member —
+                    treat them with love and care.
+                  </span>
+                </li>
+              </ul>
             </CardContent>
           </Card>
         </aside>

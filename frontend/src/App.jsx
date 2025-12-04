@@ -18,6 +18,7 @@ import ProviderDashboard from "./pages/providers/ProviderDashboard";
 import PendingApproval from "./pages/providers/PendingApprovel";
 import PublicProviderProfile from "./pages/PublicProviderProfile";
 import ScrollToTop from "./pages/ScrollToTop";
+import ProviderBookings from "./pages/providers/ProviderBookings";
 
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
@@ -65,6 +66,7 @@ function App() {
           <Route path="/user/profile" element={<UserPrfl />}></Route>
           <Route path="/provider/pending" element={<PendingApproval />}></Route>
           <Route path="/provider/:id" element={<PublicProviderProfile />}></Route>
+          <Route path="/provider/bookings" element={<ProviderBookings/>}></Route>
 
           <Route
             path="/admin/:id/provider"
@@ -77,7 +79,7 @@ function App() {
           ></Route>
           <Route path="/admin/profile" element={<AdminProfile />}></Route>
           <Route
-            path="/provider/dashboard/:id"
+            path="/provider/dashboard"
             element={<ProviderDashboard />}
           ></Route>
         </Routes>

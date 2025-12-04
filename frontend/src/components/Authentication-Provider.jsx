@@ -66,7 +66,7 @@ export default function AuthenticationProvider(props) {
         if (user.role === "admin") {
           navigate("/adminDashboard");
         } else if (user.role === "provider") {
-          navigate("/provider/profile");
+          navigate("/provider/dashboard");
         } else {
           navigate("/");
         }
