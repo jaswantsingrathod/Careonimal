@@ -32,22 +32,29 @@ function App() {
       <ToastContainer
         position="top-center"
         autoClose={1500}
-        hideProgressBar={true}
+        hideProgressBar={false}
         closeOnClick
         pauseOnHover
         draggable
-        theme="colored"
+        theme="light"
         toastStyle={{
-          backdropFilter: "blur(8px)",
-          background: "rgba(255, 255, 255, 0.4)",
-          color: "#000",
-          minHeight: "40px",
-          padding: "6px 14px",
-          borderRadius: "10px",
+          backdropFilter: "blur(6px)",
+          background:
+            "linear-gradient(180deg, rgba(255, 246, 235, 0.92), rgba(255, 239, 219, 0.92))", // warm pet cream
+          color: "#5a3410", // warm brown text
+          minHeight: "42px",
+          padding: "8px 14px",
+          borderRadius: "12px",
           fontSize: "13px",
-          fontWeight: 500,
+          fontWeight: 600,
+          border: "1px solid rgba(251,146,60,0.25)", // orange border
+          boxShadow: "0 6px 25px rgba(255, 140, 60, 0.15)",
+        }}
+        progressStyle={{
+          background: "#fb923c", // Tailwind orange-400
         }}
       />
+
       <div className="py-5 items-center pt-18">
         <Navbar />
         <Skeleton />
@@ -65,8 +72,14 @@ function App() {
           <Route path="/provider/profile" element={<ProviderPrfl />}></Route>
           <Route path="/user/profile" element={<UserPrfl />}></Route>
           <Route path="/provider/pending" element={<PendingApproval />}></Route>
-          <Route path="/provider/:id" element={<PublicProviderProfile />}></Route>
-          <Route path="/provider/bookings" element={<ProviderBookings/>}></Route>
+          <Route
+            path="/provider/:id"
+            element={<PublicProviderProfile />}
+          ></Route>
+          <Route
+            path="/provider/bookings"
+            element={<ProviderBookings />}
+          ></Route>
 
           <Route
             path="/admin/:id/provider"

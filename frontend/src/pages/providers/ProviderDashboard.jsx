@@ -500,14 +500,6 @@ export default function ProviderDashboard() {
                 <li className="flex items-start gap-2">
                   <span className="text-orange-500">•</span>
                   <span className="leading-snug">
-                    Add a small greeting or friendly note. Warmth makes pet
-                    parents feel connected 💛.
-                  </span>
-                </li>
-
-                <li className="flex items-start gap-2">
-                  <span className="text-orange-500">•</span>
-                  <span className="leading-snug">
                     Remember: every booking is someone’s furry family member —
                     treat them with love and care.
                   </span>

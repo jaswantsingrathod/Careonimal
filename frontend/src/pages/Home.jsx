@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserContext from "../context/User-Context";
 import { toast } from "react-toastify";
-import ProviderCard from "../pages/providers/ProviderCard";
+import ProviderCard from "../components/ProviderCard";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setQService,
