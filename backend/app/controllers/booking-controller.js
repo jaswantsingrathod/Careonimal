@@ -322,7 +322,7 @@ BookingController.verifyRazorpayPayment = async (req, res) => {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      bookingData, // ⬅️ comes from frontend (returned earlier by createRazorpayOrder)
+      bookingData, // comes from frontend (returned earlier by createRazorpayOrder)
     } = req.body;
 
     const signBody = razorpay_order_id + "|" + razorpay_payment_id;
@@ -357,7 +357,7 @@ BookingController.verifyRazorpayPayment = async (req, res) => {
       });
     }
 
-    // ✅ now actually create the booking
+    // now actually create the booking
     const booking = await Booking.create({
       ...bookingData,
       paymentStatus: "completed",
