@@ -56,7 +56,7 @@ export default function UserPrfl() {
     if (user.role === "provider") {
       navigate("/provider/dashboard", { replace: true });
     } else if (user.role === "admin") {
-      navigate("/adminDashboard", { replace: true });
+      navigate("/admin/dashboard", { replace: true });
     }
   }, [user]);
 

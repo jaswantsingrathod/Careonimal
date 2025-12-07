@@ -1,6 +1,6 @@
 export default function ProviderCard({ provider, onView }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col cursor-pointer transform hover:-translate-y-1 transition">
       <div className="flex items-center gap-4">
         <img src={provider.image || "/assets/placeholder-avatar.png"} alt={provider.businessName} className="h-16 w-16 rounded-full object-cover border" loading="lazy" />
         <div className="flex-1 min-w-0">

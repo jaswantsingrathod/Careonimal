@@ -292,7 +292,7 @@ export default function ProviderDashboard() {
 
           {/* Quick lists */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="rounded-2xl shadow-sm">
+            <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
               <CardHeader>
                 <CardTitle>Pending Requests</CardTitle>
                 <CardDescription className="text-sm">
@@ -357,7 +357,7 @@ export default function ProviderDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl shadow-sm">
+            <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
               <CardHeader>
                 <CardTitle>Upcoming</CardTitle>
                 <CardDescription className="text-sm">
@@ -395,7 +395,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Chart */}
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
             <CardHeader>
               <CardTitle className="text-orange-600">
                 Completed Bookings — Last 7 days
@@ -431,7 +431,7 @@ export default function ProviderDashboard() {
 
         {/* Right */}
         <aside className="lg:col-span-3 space-y-6">
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription className="text-sm">
@@ -467,7 +467,7 @@ export default function ProviderDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border border-orange-100">
+          <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition border border-orange-100">
             <CardHeader>
               <CardTitle className="text-orange-700 font-semibold flex items-center gap-2">
                 <span className="text-xl">🐾</span> Helpful Tips

@@ -5,7 +5,7 @@ import Contact from "./pages/Contact";
 import Provider from "./pages/providers/Provider";
 import Navbar from "./components/Navbar";
 import AboutUs from "./pages/AboutUs";
-import Dashboard from "./pages/users/Dashboard";
+import UserDashboard from "./pages/users/UserDashboard";
 import AdminDasboard from "./pages/admin/AdminDashboard";
 import UserProfile from "./pages/users/UserProfile";
 import ProviderProfile from "./pages/providers/ProviderProfile";
@@ -55,7 +55,7 @@ function App() {
         }}
       />
 
-      <div className="py-5 items-center pt-18">
+      <div className="items-center pt-18 min-h-screen px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
         <Navbar />
         <Skeleton />
         <ScrollToTop />
@@ -66,8 +66,8 @@ function App() {
           <Route path="/contact" element={<Contact />}></Route>
           <Route path="/provider" element={<Provider />}></Route>
           <Route path="/about" element={<AboutUs />}></Route>
-          <Route path="/dashboard" element={<Dashboard />}></Route>
-          <Route path="/adminDashboard" element={<AdminDasboard />}></Route>
+          <Route path="/user/dashboard" element={<UserDashboard />}></Route>
+          <Route path="/admin/dashboard" element={<AdminDasboard />}></Route>
           <Route path="/admin/user/:id" element={<UserProfile />}></Route>
           <Route path="/provider/profile" element={<ProviderPrfl />}></Route>
           <Route path="/user/profile" element={<UserPrfl />}></Route>

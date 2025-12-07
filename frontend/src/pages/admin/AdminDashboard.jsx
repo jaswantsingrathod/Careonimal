@@ -36,7 +36,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 
-export default function AdminDashboard() {
+export default function AdminDasboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { users, loading, error, providers } = useSelector(

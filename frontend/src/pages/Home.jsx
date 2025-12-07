@@ -124,10 +124,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-gradient-to-b from-white to-orange-50 px-4 py-8">
       <div className="w-full max-w-7xl mx-auto">
         {/* HERO & SEARCH */}
-        <section className="relative bg-white rounded-3xl shadow-xl border border-orange-50 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center p-8 lg:p-10">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-3 rounded-full bg-orange-50 px-4 py-1 text-xs font-semibold text-orange-700 w-max shadow-sm">
@@ -171,7 +169,7 @@ export default function Home() {
           <div className="px-6 pb-6">
             <form
               onSubmit={openConfirm}
-              className="-mt-8 mx-auto max-w-4xl bg-white rounded-xl shadow-lg border border-orange-100 p-4 flex flex-col md:flex-row gap-3 items-stretch"
+              className="-mt-8 mx-auto max-w-4xl bg-white rounded-xl shadow-lg border border-orange-100 bg-gradient-to-b from-orange-50 to-whit p-4 flex flex-col md:flex-row gap-3 items-stretch"
             >
               <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="flex items-center gap-3 rounded-lg border border-orange-100 px-3 py-2">
@@ -237,7 +235,6 @@ export default function Home() {
               Tip: Try "<b>Grooming</b>" or "<b>Vet</b>" — results update when you search.
             </div>
           </div>
-        </section>
 
         {/* Confirmation modal (redux-driven) */}
         {confirmOpen && (
@@ -291,6 +288,5 @@ export default function Home() {
 
         <Footer />
       </div>
-    </main>
   );
 }

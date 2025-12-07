@@ -8,7 +8,7 @@ export const createBooking = createAsyncThunk(
       const res = await axios.post("/bookings/create", payload, {
         headers: { Authorization: localStorage.getItem("token") },
       });
-      return res.data; 
+      return res.data;
     } catch (err) {
       const message = err?.response?.data?.error || "Booking failed";
       console.error("createBooking error:", message);
@@ -48,7 +48,8 @@ export const fetchBookingsForProvider = createAsyncThunk(
       if (Array.isArray(data)) return data;
       return data?.bookings ?? data?.data ?? [];
     } catch (err) {
-      const message = err?.response?.data?.error || "Failed to fetch provider bookings";
+      const message =
+        err?.response?.data?.error || "Failed to fetch provider bookings";
       console.error("fetchBookingsForProvider error:", message);
       return rejectWithValue(message);
     }
@@ -59,10 +60,14 @@ export const updateBookingStatus = createAsyncThunk(
   "booking/updateBookingStatus",
   async ({ id, bookingStatus }, { rejectWithValue }) => {
     try {
-      const res = await axios.put(`/bookings/status/${id}`, { bookingStatus }, {
-        headers: { Authorization: localStorage.getItem("token") },
-      });
-      return res.data; 
+      const res = await axios.put(
+        `/bookings/status/${id}`,
+        { bookingStatus },
+        {
+          headers: { Authorization: localStorage.getItem("token") },
+        }
+      );
+      return res.data;
     } catch (err) {
       const message = err?.response?.data?.error || "Failed to update status";
       console.error("updateBookingStatus error:", message);
@@ -75,7 +80,7 @@ export const cancelBooking = createAsyncThunk(
   "booking/cancelBooking",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.put(`/bookings/cancel/${id}`, null, {
+      const res = await axios.put(`/bookings/${id}/cancel`, null, {
         headers: { Authorization: localStorage.getItem("token") },
       });
       return res.data;
@@ -99,6 +104,42 @@ export const deleteBooking = createAsyncThunk(
       const message = err?.response?.data?.error || "Failed to delete booking";
       console.error("deleteBooking error:", message);
       return rejectWithValue(message);
+    }
+  }
+);
+
+export const createRazorpayOrder = createAsyncThunk(
+  "booking/createRazorpayOrder",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("/create-razorpay-order", payload, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+      return data; // { success, key, orderId, amount, currency, bookingId }
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to create Razorpay order"
+      );
+    }
+  }
+);
+
+export const verifyRazorpayPayment = createAsyncThunk(
+  "booking/verifyRazorpayPayment",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("/verify-payment", payload, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+      return data; // { success, message, booking }
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to verify payment"
+      );
     }
   }
 );
@@ -180,7 +221,9 @@ const bookingSlice = createSlice({
         state.loading = false;
         const updated = action.payload;
         if (updated && updated._id) {
-          state.list = state.list.map((b) => (String(b._id) === String(updated._id) ? updated : b));
+          state.list = state.list.map((b) =>
+            String(b._id) === String(updated._id) ? updated : b
+          );
         }
       })
       .addCase(updateBookingStatus.rejected, (state, action) => {
@@ -198,7 +241,9 @@ const bookingSlice = createSlice({
         state.loading = false;
         const updated = action.payload;
         if (updated && updated._id) {
-          state.list = state.list.map((b) => (String(b._id) === String(updated._id) ? updated : b));
+          state.list = state.list.map((b) =>
+            String(b._id) === String(updated._id) ? updated : b
+          );
         }
       })
       .addCase(cancelBooking.rejected, (state, action) => {
@@ -219,6 +264,35 @@ const bookingSlice = createSlice({
       .addCase(deleteBooking.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to delete booking";
+      });
+
+      // createRazorpayOrder
+      builder
+      .addCase(createRazorpayOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createRazorpayOrder.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createRazorpayOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to start payment";
+      })
+
+      // verifyRazorpayPayment
+      builder
+      .addCase(verifyRazorpayPayment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyRazorpayPayment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.current = action.payload.booking || null;
+      })
+      .addCase(verifyRazorpayPayment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to verify payment";
       });
   },
 });

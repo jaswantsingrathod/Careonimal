@@ -2,7 +2,6 @@ import Footer from "../components/Footer";
 
 export default function AboutUs() {
   return (
-    <section className="min-h-screen w-full bg-white flex items-center justify-center px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold mb-3 text-neutral-900">About <span className="text-orange-600">Careonimal</span></h1>
@@ -92,6 +91,5 @@ export default function AboutUs() {
         </section>
       <Footer />
       </div>
-    </section>
   );
 }

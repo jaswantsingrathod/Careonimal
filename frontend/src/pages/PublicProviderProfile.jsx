@@ -1,4 +1,3 @@
-// src/pages/PublicProviderProfile.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
@@ -186,7 +185,7 @@ export default function PublicProviderProfile() {
                           onClick={() => {
                             setSelectedGroup(groupIndex);
                             setSelectedIndex(svcIndex);
-                            setSelectedSvc(sub);
+                            setSelectedSvc({ ...sub, petType: svc.petType });
                             setOpen(true);
                           }}
                         >

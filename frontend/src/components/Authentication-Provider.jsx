@@ -64,7 +64,7 @@ export default function AuthenticationProvider(props) {
         userDispatch({ type: "LOGIN", payload: user });
 
         if (user.role === "admin") {
-          navigate("/adminDashboard");
+          navigate("/admin/dashboard");
         } else if (user.role === "provider") {
           navigate("/provider/dashboard");
         } else {
