@@ -57,8 +57,11 @@ app.post('/bookings/create', authenticateUser, authorizeUser(["user"]), BookingC
 app.get('/bookings', authenticateUser, authorizeUser(["user", "admin"]), BookingController.userBookings)
 app.get('/bookings/provider', authenticateUser, authorizeUser(["provider"]), BookingController.providerBookings)
 app.put('/bookings/status/:id', authenticateUser, authorizeUser(["provider"]), BookingController.updateStatus)
-app.put('/bookings/cancel/:id', authenticateUser, authorizeUser(["user"]), BookingController.cancel)
+app.put('/bookings/:id/cancel', authenticateUser, authorizeUser(["user"]), BookingController.cancel)
 app.delete('/bookings/delete/:id', authenticateUser, authorizeUser(["admin"]), BookingController.delete)
+// Razorpay routes
+app.post("/create-razorpay-order",authenticateUser,authorizeUser(["user", "provider"]),BookingController.createRazorpayOrder);
+app.post("/verify-payment",authenticateUser,authorizeUser(["user", "provider"]),BookingController.verifyRazorpayPayment);
 
 // reviews routes
 app.post('/reviews/make-review', authenticateUser, authorizeUser(["user"]), ReviewController.makeReview)
