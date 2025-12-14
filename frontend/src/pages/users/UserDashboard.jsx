@@ -20,7 +20,7 @@ import {
 } from "../../slices/booking-slice";
 
 import ReviewModal from "../../components/ReviewModel";
-import { fetchAllReviews } from "../../slices/review-slice";
+import { fetchAllReviews } from "../../slices/Review-slice.js";
 
 export default function UserDashboard() {
   const dispatch = useDispatch();
