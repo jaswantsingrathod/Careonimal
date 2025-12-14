@@ -9,7 +9,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { makeReview } from "../slices/review-slice";
+import { makeReview } from "../slices/Review-slice.js";
 import { toast } from "react-toastify";
 
 export default function ReviewModal({ open, onOpenChange, booking }) {

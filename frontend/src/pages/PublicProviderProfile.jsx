@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { fetchProvider } from "../slices/admin-slice.js";
-import { fetchAllReviews } from "../slices/review-slice.js";
+import { fetchAllReviews } from "../slices/Review-slice.js";
 
 import BookingModal from "../components/BookingModel";
 
