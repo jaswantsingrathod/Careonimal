@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "react-toastify";
-import { PawPrint } from "lucide-react";
+import { PawPrint, Star } from "lucide-react";
 
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useTheme } from "@mui/material/styles";
@@ -22,7 +22,9 @@ import {
   fetchBookingsForProvider,
   updateBookingStatus,
 } from "../../slices/booking-slice";
-import { setOpenServices } from "../../slices/Provider-slice";
+import { fetchMyProviderReviews } from "../../slices/review-slice";
+
+import SubscriptionCard from "./SubscriptionCard";
 
 /* -------------------- helpers -------------------- */
 const startOfDay = (d) => {
@@ -51,6 +53,7 @@ export default function ProviderDashboard() {
   const bookings = useSelector((s) => s.booking?.list ?? [], shallowEqual);
   const bookingsLoading = useSelector((s) => s.booking?.loading ?? false);
   const authUser = useSelector((s) => s.auth?.user ?? null, shallowEqual);
+  const myReviews = useSelector((state) => state.review?.items ?? []);
 
   // resolve provider (if needed)
   const provider = useMemo(() => {
@@ -67,6 +70,7 @@ export default function ProviderDashboard() {
   // initial loads
   useEffect(() => {
     dispatch(fetchProvider());
+    dispatch(fetchMyProviderReviews());
   }, [dispatch]);
 
   useEffect(() => {
@@ -190,7 +194,6 @@ export default function ProviderDashboard() {
   const handleQuickDecline = (b) =>
     runQuickAction(b._id, "cancelled", "Declined");
 
-  /* -------------------- UI -------------------- */
   return (
     <div className="min-h-screen px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
       <div className="max-w-7xl mx-auto mb-6">
@@ -294,69 +297,55 @@ export default function ProviderDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
               <CardHeader>
-                <CardTitle>Pending Requests</CardTitle>
-                <CardDescription className="text-sm">
-                  Recent requests requiring approval
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  Customer Reviews
+                </CardTitle>
               </CardHeader>
+
               <CardContent>
-                <ScrollArea className="h-56">
-                  <div className="space-y-3">
-                    {bookingsLoading ? (
-                      <div className="text-center text-sm text-slate-500 py-8">
-                        Loading...
-                      </div>
-                    ) : pendingList.length === 0 ? (
-                      <div className="text-center text-sm text-slate-500 py-8">
-                        No pending requests
-                      </div>
-                    ) : (
-                      pendingList.map((b) => (
+                <ScrollArea className="h-64 pr-2">
+                  {myReviews.length === 0 ? (
+                    <p className="text-center text-sm text-gray-500 py-6">
+                      No reviews yet for your services.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {myReviews.map((r) => (
                         <div
-                          key={b._id}
-                          className="flex items-center justify-between p-3 rounded-lg border bg-white"
+                          key={r._id}
+                          className="border p-3 rounded-xl bg-white shadow-sm"
                         >
-                          <div>
-                            <div className="font-semibold text-sm">
-                              {b.user?.username || b.user?.email || "Customer"}
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              {new Date(b.bookingDate).toLocaleDateString()} •{" "}
-                              {b.timeSlot}
-                            </div>
-                            <div className="text-xs text-slate-500 mt-1">
-                              {b.petType} — {b.service}
+                          {/* Header */}
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm font-semibold">
+                              {r.user?.username || "User"}
+                            </p>
+
+                            <div className="flex">
+                              {Array.from({ length: r.rating }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className="w-4 h-4 text-yellow-500 fill-yellow-500"
+                                />
+                              ))}
                             </div>
                           </div>
-                          <div className="flex flex-col gap-2">
-                            <Button
-                              size="sm"
-                              disabled={processingId === b._id}
-                              onClick={() => handleQuickAccept(b)}
-                            >
-                              {processingId === b._id
-                                ? "Processing..."
-                                : "Accept"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={processingId === b._id}
-                              onClick={() => handleQuickDecline(b)}
-                            >
-                              {processingId === b._id
-                                ? "Processing..."
-                                : "Decline"}
-                            </Button>
-                          </div>
+
+                          {/* Comment */}
+                          <p className="text-sm text-gray-700 mt-1">
+                            {r.comment}
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-1">
+                            {new Date(r.createdAt).toLocaleDateString("en-IN")}
+                          </p>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </ScrollArea>
               </CardContent>
             </Card>
-
             <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
               <CardHeader>
                 <CardTitle>Upcoming</CardTitle>
@@ -431,6 +420,7 @@ export default function ProviderDashboard() {
 
         {/* Right */}
         <aside className="lg:col-span-3 space-y-6">
+          <SubscriptionCard />
           <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>

@@ -1,4 +1,3 @@
-// src/pages/providers/ProvidersPrfl.jsx
 import { useContext, useEffect, useMemo } from "react";
 import UserContext from "../../context/User-Context";
 import { useSelector, useDispatch } from "react-redux";
@@ -165,7 +164,6 @@ export default function ProvidersPrfl() {
       String(ele.user?._id ?? ele.user) === String(user?._id)
   );
 
-  /* ---------------- Logo handlers (now using redux) ---------------- */
   const openLogoDialog = () => {
     dispatch(setLogoPreview(ele.image || null));
     dispatch(setLogoFile(null));
@@ -205,7 +203,7 @@ export default function ProvidersPrfl() {
     }
   };
 
-  /* ---------------- Personal handlers (redux-driven) ---------------- */
+  // Personal handlers 
   const openPersonalDialog = () => {
     dispatch(setBusinessName(ele.businessName || ""));
     dispatch(setContact(ele.contact || ""));
@@ -252,7 +250,7 @@ export default function ProvidersPrfl() {
     }
   };
 
-  /* ---------------- Services handlers (redux-driven) ---------------- */
+  // Services handlers (redux-driven) 
   const openServicesDialog = () => {
     dispatch(setServicesCopy(JSON.parse(JSON.stringify(ele.servicesOffered || []))));
     dispatch(setBusinessName(ele.businessName || ""));
@@ -434,7 +432,6 @@ export default function ProvidersPrfl() {
                             </div>
                           </div>
 
-                          {/* Book/Details buttons removed per request — this area shows details only */}
                         </div>
                       ))
                     ) : (
@@ -457,7 +454,7 @@ export default function ProvidersPrfl() {
         </div>
       </div>
 
-      {/* ========== Logo Dialog ========== */}
+      {/*  Logo Dialog */}
       <Dialog open={openLogo} onOpenChange={(v) => dispatch(setOpenLogo(v))}>
         <DialogContent className="sm:max-w-sm max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -483,7 +480,7 @@ export default function ProvidersPrfl() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== Personal Dialog ========== */}
+      {/*  Personal Dialog  */}
       <Dialog open={openPersonal} onOpenChange={(v) => dispatch(setOpenPersonal(v))}>
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto transform-gpu motion-safe:animate-fade-in">
           <DialogHeader className="pb-2">
@@ -533,7 +530,7 @@ export default function ProvidersPrfl() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== Services Dialog ========== */}
+      {/*  Services Dialog  */}
       <Dialog open={openServices} onOpenChange={(v) => dispatch(setOpenServices(v))}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto transform-gpu motion-safe:animate-fade-in">
           <DialogHeader className="pb-2">

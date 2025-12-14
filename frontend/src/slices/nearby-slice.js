@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../config/axios"; 
-// Thunk: fetch providers from server
 export const fetchNearbyProviders = createAsyncThunk(
   "nearby/fetchNearbyProviders",
   async ({ lat, lng, radiusKm }, { rejectWithValue }) => {
@@ -11,7 +10,7 @@ export const fetchNearbyProviders = createAsyncThunk(
       const json = res.data;
       const list = Array.isArray(json.providers) ? json.providers : [];
 
-      // Normalize distances to km (server may use different fields)
+      // Normalize distances to km 
       const normalized = list.map((p) => {
         const distance =
           p.distance != null
@@ -71,24 +70,6 @@ const slice = createSlice({
     },
     setLoadingProviders(state, action) {
       state.loadingProviders = action.payload;
-    },
-    applyClientFilters(state) {
-      // In-place filtering: this keeps servers results but filters client-side
-      const { qService, qCity, qPetType } = state;
-      state.providers = state.providers.filter((p) => {
-        if (qService && qService.trim() !== "" && p.serviceType !== qService) return false;
-        if (qCity && qCity.trim() !== "") {
-          const addr = (p.location?.address || "").toLowerCase();
-          if (!addr.includes(qCity.toLowerCase())) return false;
-        }
-        if (qPetType && qPetType.trim() !== "") {
-          const has = (p.servicesOffered || []).some(
-            (s) => (s.petType || "").toLowerCase() === qPetType.toLowerCase()
-          );
-          if (!has) return false;
-        }
-        return true;
-      });
     },
   },
   extraReducers: (builder) => {

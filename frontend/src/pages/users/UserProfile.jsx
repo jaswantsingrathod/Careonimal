@@ -66,7 +66,6 @@ export default function UserProfile() {
     ? new Date(ele.createdAt).toLocaleDateString()
     : "—";
 
-  // chips data (this is what we loop over – NOT selectedUser)
   const info = [
     {
       icon: Mail,
@@ -96,8 +95,8 @@ export default function UserProfile() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-3">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-10 ">
         {/* back button */}
         <Button
           variant="ghost"
@@ -110,7 +109,7 @@ export default function UserProfile() {
         </Button>
 
         {/* MAIN CARD */}
-        <Card className="rounded-3xl shadow-md border border-slate-200 bg-white py-6 px-6">
+        <Card className="rounded-3xl shadow-md border border-slate-200 bg-white py-10 px-6 ">
           {/* avatar + name center */}
           <CardHeader className="p-0 flex flex-col items-center">
             <div className="relative h-20 w-20 rounded-full bg-slate-200 flex items-center justify-center text-xl font-semibold text-slate-800 shadow">

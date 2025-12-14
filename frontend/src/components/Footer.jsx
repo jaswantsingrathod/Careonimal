@@ -11,7 +11,7 @@ export default function Footer() {
             <img className="h-30 w-auto" src={logoImg} alt="Careonimal Logo" />
 
             <span className="text-lg font-semibold text-orange-600 mt-2 text-center">
-              𝓒𝓪𝓻𝓮𝓸𝓷𝓲𝓶𝓪𝓵
+              Careonimal
             </span>
           </div>
 

@@ -64,13 +64,7 @@ export default function Navbar() {
 
               <div className="leading-none">
                 <span className="text-lg font-semibold text-orange-600">
-                  𝓒𝓪𝓻𝓮
-                </span>
-                <span className="text-lg font-semibold text-orange-500">
-                  𝓸
-                </span>
-                <span className="text-lg font-semibold text-orange-600">
-                  𝓷𝓲𝓶𝓪𝓵
+                  Careonimal
                 </span>
               </div>
             </Link>
@@ -83,26 +77,7 @@ export default function Navbar() {
                 <NavItem to="/">Home</NavItem>
                 <NavItem to="/contact">Contact</NavItem>
                 <NavItem to="/about">About Us</NavItem>
-
-                {user?.role !== "provider" && user?.role !== "admin" && (
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <button
-                        onClick={() => {
-                          if (!isLoggedIn) navigate("/login");
-                          else navigate("/provider");
-                        }}
-                        className="relative text-sm text-slate-700 hover:text-orange-600 transition 
-                          after:absolute after:left-0 after:-bottom-1 after:h-[1.5px]
-                          after:w-0 after:bg-orange-500 after:transition-all after:duration-300
-                          hover:after:w-full bg-transparent border-0 p-0"
-                      >
-                        Offer Pet Care
-                      </button>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                )}
-              </NavigationMenuList>
+             </NavigationMenuList>
             </NavigationMenu>
           </div>
 
@@ -252,14 +227,6 @@ export default function Navbar() {
                         >
                           Dashboard
                         </Link>
-                        {/* {user?.role === "admin" && (
-                          <Link
-                            to="/admin/dashboard"
-                            onClick={() => setOpen(false)}
-                          >
-                            Admin Panel
-                          </Link>
-                        )} */}
                         <button
                           className="text-left text-rose-600 font-medium"
                           onClick={() => {

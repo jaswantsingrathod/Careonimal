@@ -2,7 +2,7 @@ import Footer from "../components/Footer";
 
 export default function AboutUs() {
   return (
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto pt-10 pb-20 px-4">
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold mb-3 text-neutral-900">About <span className="text-orange-600">Careonimal</span></h1>
           <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
