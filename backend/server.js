@@ -12,7 +12,6 @@ const port = process.env.PORT;
 
 import ConfigureDB from "./config/db.js";
 ConfigureDB();
-
 import "./app/cron-jobs/subscription-cron.js";
 
 
@@ -25,6 +24,7 @@ import providerSubscriptionController from "./app/controllers/provider-subscript
 import ReviewController from "./app/controllers/review-controller.js";
 import { authenticateUser } from "./app/middlewares/authenticate-user.js";
 import { authorizeUser } from "./app/middlewares/authorize-user.js";
+import { requireActiveSubscription } from "./app/middlewares/check-subscription.js";
 
 
 // app.get('/providers/nearby', ProviderController.nearby);
@@ -50,13 +50,16 @@ app.delete('/provider/account/delete/:id', authenticateUser, authorizeUser(["pro
 app.post('/providers/subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.subscription)
 app.get('/providers/my-subscription', authenticateUser, authorizeUser(["provider"]), providerSubscriptionController.mySubscription)
 app.get('/providers/subscriptions', authenticateUser, authorizeUser(["admin"]), providerSubscriptionController.allSubscriptions)
+// Razorpay subscription routes
+app.post("/providers/subscription/create-order",authenticateUser,authorizeUser(["provider"]),providerSubscriptionController.createOrder);
+app.post("/providers/subscription/verify-payment",authenticateUser,authorizeUser(["provider"]),providerSubscriptionController.verifyPayment)
 app.get('/providers/:id', authenticateUser, ProviderController.account)
 
 // bookings
 app.post('/bookings/create', authenticateUser, authorizeUser(["user"]), BookingController.create);
 app.get('/bookings', authenticateUser, authorizeUser(["user", "admin"]), BookingController.userBookings)
-app.get('/bookings/provider', authenticateUser, authorizeUser(["provider"]), BookingController.providerBookings)
-app.put('/bookings/status/:id', authenticateUser, authorizeUser(["provider"]), BookingController.updateStatus)
+app.get('/bookings/provider', authenticateUser, authorizeUser(["provider"]),requireActiveSubscription ,BookingController.providerBookings)
+app.put('/bookings/status/:id', authenticateUser, authorizeUser(["provider"]),requireActiveSubscription ,BookingController.updateStatus)
 app.put('/bookings/:id/cancel', authenticateUser, authorizeUser(["user"]), BookingController.cancel)
 app.delete('/bookings/delete/:id', authenticateUser, authorizeUser(["admin"]), BookingController.delete)
 // Razorpay routes

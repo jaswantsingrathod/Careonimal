@@ -1,4 +1,3 @@
-// cron-jobs/subscription-cron.js
 import cron from "node-cron";
 import Subscription from "../models/provider-subscription-models.js";
 // Runs every midnight (00:00)

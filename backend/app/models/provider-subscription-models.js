@@ -28,7 +28,7 @@ const subscriptionSchema = new mongoose.Schema({
     default: true,
   },
   paymentId: {
-    type: String, // Optional, if Razorpay integrated
+    type: String, // Razorpay integrated
   },
 }, { timestamps: true });
 
