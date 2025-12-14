@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { fetchAllReviews } from "../../slices/review-slice";
+import { fetchAllReviews } from "../../slices/Review-slice.js";
 
 export default function ProviderReviewsCard({ providerId }) {
   const dispatch = useDispatch();

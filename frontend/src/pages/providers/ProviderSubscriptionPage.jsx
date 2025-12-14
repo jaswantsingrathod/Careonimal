@@ -17,7 +17,7 @@ import {
   fetchMySubscription,
   createSubscriptionOrder,
   verifySubscriptionPayment,
-} from "../../slices/subscription-slice";
+} from "../../slices/subscription-slice.js";
 
 const PLANS = [
   {

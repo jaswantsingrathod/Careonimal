@@ -6,8 +6,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, PawPrint, Edit } from "lucide-react";
-import { fetchProvider, fetchSingleProvider } from "../../slices/admin-slice";
-import { updateProvider, deleteAccount } from "../../slices/Provider-slice";
+import { fetchProvider, fetchSingleProvider } from "../../slices/admin-slice.js";
+import { updateProvider, deleteAccount } from "../../slices/Provider-slice.js";
 import { toast } from "react-toastify";
 
 import {
@@ -39,7 +39,7 @@ import {
   removeSubService,
   setSubField,
   populateFromProvider,
-} from "../../slices/Provider-slice";
+} from "../../slices/Provider-slice.js";
 
 export default function ProvidersPrfl() {
   const dispatch = useDispatch();

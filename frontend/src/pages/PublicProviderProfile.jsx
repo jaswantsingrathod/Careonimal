@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { fetchProvider } from "../slices/admin-slice";
-import { fetchAllReviews } from "../slices/review-slice";
+import { fetchProvider } from "../slices/admin-slice.js";
+import { fetchAllReviews } from "../slices/review-slice.js";
 
 import BookingModal from "../components/BookingModel";
 

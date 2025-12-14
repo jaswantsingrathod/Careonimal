@@ -8,7 +8,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "react-toastify";
@@ -17,12 +16,12 @@ import { PawPrint, Star } from "lucide-react";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useTheme } from "@mui/material/styles";
 
-import { fetchProvider } from "../../slices/admin-slice";
+import { fetchProvider } from "../../slices/admin-slice.js";
 import {
   fetchBookingsForProvider,
   updateBookingStatus,
-} from "../../slices/booking-slice";
-import { fetchMyProviderReviews } from "../../slices/review-slice";
+} from "../../slices/booking-slice.js";
+import { fetchMyProviderReviews } from "../../slices/Review-slice.js";
 
 import SubscriptionCard from "./SubscriptionCard";
 

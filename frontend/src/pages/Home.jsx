@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { PawPrint, Calendar, Dog, Search } from "lucide-react";

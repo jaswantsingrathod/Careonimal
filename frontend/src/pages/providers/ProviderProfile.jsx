@@ -27,7 +27,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { fetchProvider, approveProvider } from "../../slices/admin-slice";
+import { fetchProvider, approveProvider } from "../../slices/admin-slice.js";
 
 export default function ProviderProfile() {
   const { id } = useParams();

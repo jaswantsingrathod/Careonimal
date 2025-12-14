@@ -12,8 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { fetchMySubscription } from "../../slices/subscription-slice";
-import { fetchProvider } from "../../slices/admin-slice";
+import { fetchMySubscription } from "../../slices/subscription-slice.js";
+import { fetchProvider } from "../../slices/admin-slice.js";
 
 export default function SubscriptionCard() {
   const dispatch = useDispatch();
