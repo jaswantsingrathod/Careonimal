@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import UserContext from "@/context/User-Context";
-import { LogOut, Settings, Menu } from "lucide-react";
+import { Settings, Menu } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -21,7 +21,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
-/* shadcn DropdownMenu imports */
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -50,7 +49,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* glass, orange-tinted navbar matching dashboard */}
       <header className="fixed top-3 left-1/2 -translate-x-1/2 z-30 w-[94%] max-w-6xl rounded-2xl border border-orange-100/70 bg-white/80 backdrop-blur-md shadow-[0_18px_45px_rgba(15,23,42,0.18)] items-center bg-gradient-to-b from-orange-50 to-whit">
         <div className="flex items-center justify-between px-4 sm:px-6 py-2.5">
           {/* LOGO */}
@@ -215,7 +213,7 @@ export default function Navbar() {
                       </Link>
                     ) : (
                       <>
-                        <Link
+                        {/* <Link
                           to={profilePath()}
                           onClick={() => setOpen(false)}
                         >
@@ -226,7 +224,7 @@ export default function Navbar() {
                           onClick={() => setOpen(false)}
                         >
                           Dashboard
-                        </Link>
+                        </Link> */}
                         <button
                           className="text-left text-rose-600 font-medium"
                           onClick={() => {
@@ -245,8 +243,6 @@ export default function Navbar() {
           </div>
         </div>
       </header>
-
-      {/* spacer so content doesn't hide under fixed navbar */}
       <div className="h-1" />
     </>
   );

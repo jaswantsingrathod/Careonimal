@@ -11,7 +11,7 @@ export default function ProviderCard({ provider, onView }) {
         />
         <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
           <Star className="h-3 w-3 text-yellow-500" />
-          {provider.avgRating || "4.5"}
+          {provider.rating}
         </span>
       </div>
 

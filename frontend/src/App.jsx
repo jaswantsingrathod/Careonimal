@@ -2,7 +2,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Contact from "./pages/Contact";
-import Provider from "./pages/providers/Provider";
+import ProviderForm from "./pages/providers/ProviderRegisterForm";
 import Navbar from "./components/Navbar";
 import AboutUs from "./pages/AboutUs";
 import UserDashboard from "./pages/users/UserDashboard";
@@ -70,7 +70,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<AboutUs />} />
-          <Route path="/provider" element={<Provider />} />
+          <Route path="/provider" element={<ProviderForm />} />
           <Route path="/provider/:id" element={<PublicProviderProfile />} />
           <Route
             path="/provider/subscription"
@@ -115,9 +115,7 @@ function App() {
           <Route
             path="/provider/pending"
             element={
-              <ProtectedRoute allowedRoles={["provider"]}>
                 <PendingApproval />
-              </ProtectedRoute>
             }
           />
           <Route
