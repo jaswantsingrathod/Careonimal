@@ -18,7 +18,10 @@ export const providerValidation = Joi.object({
 
   priceRange: Joi.string().allow("", null),
 
-  contact: Joi.string().allow("", null),
+  contact: Joi.string()
+  .trim()
+  .pattern(/^(\+?91)?[6-9][0-9]{9}$/)
+  .required(),
 
 
   image: Joi.string().allow("", null),
@@ -51,7 +54,7 @@ export const providerUpdateValidation = Joi.object({
   businessName: Joi.string().min(3).max(100),
   description: Joi.string().max(300).allow("", null),
 
-  //  keep same structure for address (not string)
+  //  keep same structure for address
   location: Joi.object({
     latitude: Joi.number().min(-90).max(90),
     longitude: Joi.number().min(-180).max(180)
