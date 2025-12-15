@@ -247,11 +247,6 @@ export default function AdminDasboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Users</CardTitle>
-                <div className="text-xs text-gray-500 mt-1">
-                  {loading
-                    ? "Loading..."
-                    : `${totalUsers} user(s) returned from API`}
-                </div>
               </CardHeader>
 
               <CardContent>
