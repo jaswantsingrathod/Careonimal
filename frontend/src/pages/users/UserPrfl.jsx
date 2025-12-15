@@ -3,14 +3,12 @@ import { useNavigate } from "react-router-dom";
 import UserContext from "../../context/User-Context";
 import axios from "../../config/axios";
 import { toast } from "react-toastify";
-import { User, Mail, Phone, Shield, Edit2 } from "lucide-react";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+// icons
+import { User, Mail, Phone, ShieldCheck, Edit2 } from "lucide-react";
+
+// shadcn components
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,8 +18,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const initialState = {
   openEdit: false,
@@ -66,7 +63,7 @@ export default function UserPrfl() {
   const handleEdit = async (id, updatedData) => {
     const digits = updatedData.phone.replace(/\D/g, "");
     if (digits.length !== 10) {
-      toast.error("Phone number must be exactly 10 digits");
+      toast.error("Phone number must be 10 digits");
       return;
     }
 
@@ -78,151 +75,158 @@ export default function UserPrfl() {
         { headers: { Authorization: localStorage.getItem("token") } }
       );
       userDispatch({ type: "LOGIN", payload: res.data });
-      toast.success("Profile updated successfully!");
       dispatch({ type: "CLOSE_EDIT" });
+      toast.success("Profile updated");
     } catch (err) {
-      toast.error(err?.response?.data?.error || "Update failed");
+      toast.error("Update failed");
     } finally {
       dispatch({ type: "SET_SAVING", payload: false });
     }
   };
 
-  if (!user) return null;
+  if (!user) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (user.role !== "user") return null;
+
+  const initials = user.username?.slice(0, 2).toUpperCase() || "US";
 
   return (
-    <div className="min-h-screen  py-12 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen px-4 sm:px-6 py-6 sm:py-10">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
 
         {/* HEADER */}
-        <div className="bg-gradient-to-r from-orange-100 to-transparent p-6 rounded-2xl border border-orange-200">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-              <AvatarImage src={user.profilePicture} />
-              <AvatarFallback className="text-2xl font-bold bg-orange-500 text-white">
-                {user.username.slice(0, 2).toUpperCase()}
+        <div className="rounded-3xl bg-gradient-to-r from-orange-100 to-orange-50
+                        border border-orange-200 shadow-md
+                        p-4 sm:p-6 flex flex-col sm:flex-row
+                        sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-orange-400 shadow">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback className="bg-orange-500 text-white text-lg sm:text-xl font-bold">
+                {initials}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-orange-900">
+            <div>
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900">
                 Welcome, {user.username}
               </h1>
-              <p className="text-orange-700 text-sm">
+              <p className="text-xs sm:text-sm text-slate-600">
                 Manage your profile and account settings
               </p>
             </div>
-
-            <Button
-              onClick={openEditForUser}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Edit2 className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
           </div>
+
+          <Button
+            onClick={openEditForUser}
+            className="bg-orange-500 hover:bg-orange-600 text-white
+                       rounded-full px-5 py-2 w-full sm:w-auto"
+          >
+            <Edit2 className="w-4 h-4 mr-2" />
+            Edit Profile
+          </Button>
         </div>
 
-        {/* CARDS */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="border-orange-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-700">
-                <User className="w-5 h-5" /> Personal Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-4 p-3 rounded-lg bg-orange-100">
-                <Mail className="w-4 h-4 text-orange-600" />
-                <div>
-                  <p className="text-xs text-orange-600 uppercase">Email</p>
-                  <p className="font-medium text-orange-900">{user.email}</p>
-                </div>
-              </div>
+        {/* GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
 
-              <div className="flex gap-4 p-3 rounded-lg bg-orange-100">
-                <Phone className="w-4 h-4 text-orange-600" />
-                <div>
-                  <p className="text-xs text-orange-600 uppercase">Phone</p>
-                  <p className="font-medium text-orange-900">
-                    {user.phone || "Not provided"}
-                  </p>
-                </div>
-              </div>
+          {/* PERSONAL */}
+          <Card className="rounded-3xl border border-orange-200 shadow-md">
+            <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                <User className="w-5 h-5 text-orange-600" />
+                Personal Details
+              </h2>
+
+              <DetailRow icon={Mail} label="Email" value={user.email} />
+              <DetailRow icon={Phone} label="Phone" value={user.phone || "Not provided"} />
+              <DetailRow icon={User} label="Username" value={user.username} />
             </CardContent>
           </Card>
 
-          <Card className="border-orange-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-700">
-                <Shield className="w-5 h-5" /> Account Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center bg-orange-100 p-3 rounded-lg">
-                <span className="font-medium text-orange-800">Role</span>
-                <Badge className="bg-orange-500 text-white capitalize">
+          {/* STATUS */}
+          <Card className="rounded-3xl border border-orange-200 shadow-md">
+            <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-orange-600" />
+                Account Status
+              </h2>
+
+              <div className="flex justify-between items-center bg-orange-50
+                              border border-orange-200 rounded-2xl px-4 py-3">
+                <span className="text-sm">Account Role</span>
+                <span className="px-3 py-1 rounded-full bg-orange-200 text-orange-800 text-xs font-semibold capitalize">
                   {user.role}
-                </Badge>
+                </span>
               </div>
 
-              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-center text-orange-700 text-sm">
-                Your account is active
+              <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-sm text-green-700">
+                Account is active
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* EDIT DIALOG */}
-        <Dialog open={state.openEdit} onOpenChange={() => dispatch({ type: "CLOSE_EDIT" })}>
-          <DialogContent>
+        {/* EDIT MODAL */}
+        <Dialog open={state.openEdit} onOpenChange={(o) => !o && dispatch({ type: "CLOSE_EDIT" })}>
+          <DialogContent className="max-w-md w-[95%] sm:w-full">
             <DialogHeader>
-              <DialogTitle className="text-orange-700">Edit Profile</DialogTitle>
+              <DialogTitle>Edit Profile</DialogTitle>
               <DialogDescription>Update your details</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-3">
-              {["email", "username"].map((field) => (
-                <input
-                  key={field}
-                  className="w-full border border-orange-300 rounded-md p-2 focus:ring-2 focus:ring-orange-400"
-                  value={state.editData[field]}
-                  onChange={(e) =>
-                    dispatch({ type: "SET_FIELD", field, value: e.target.value })
-                  }
-                />
-              ))}
-
               <input
-                type="tel"
+                className="w-full rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm"
+                value={state.editData.email}
+                onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })}
+              />
+              <input
+                className="w-full rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm"
+                value={state.editData.username}
+                onChange={(e) => dispatch({ type: "SET_FIELD", field: "username", value: e.target.value })}
+              />
+              <input
+                className="w-full rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-sm"
                 maxLength={10}
                 value={state.editData.phone}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FIELD",
-                    field: "phone",
-                    value: e.target.value.replace(/\D/g, "").slice(0, 10),
-                  })
-                }
-                className="w-full border border-orange-300 rounded-md p-2 focus:ring-2 focus:ring-orange-400"
-                placeholder="10 digit mobile number"
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "");
+                  if (v.length <= 10) dispatch({ type: "SET_FIELD", field: "phone", value: v });
+                }}
               />
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => dispatch({ type: "CLOSE_EDIT" })}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button variant="outline" className="w-full sm:w-auto"
+                onClick={() => dispatch({ type: "CLOSE_EDIT" })}>
                 Cancel
               </Button>
               <Button
-                onClick={() => handleEdit(user._id, state.editData)}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
                 disabled={state.saving}
+                onClick={() => handleEdit(user._id, state.editData)}
               >
-                {state.saving ? "Saving..." : "Save Changes"}
+                {state.saving ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
       </div>
+    </div>
+  );
+}
+
+function DetailRow({ icon: Icon, label, value }) {
+  return (
+    <div className="flex justify-between items-center bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+      <div className="flex items-center gap-2 text-sm text-slate-600">
+        <Icon className="w-4 h-4 text-orange-600" />
+        {label}
+      </div>
+      <span className="text-sm font-medium text-slate-900 break-all">
+        {value}
+      </span>
     </div>
   );
 }
