@@ -6,16 +6,59 @@ import { useFormik } from "formik";
 import UserContext from "../context/User-Context";
 import { useContext, useEffect } from "react";
 
+import Joi from "joi";
 import { toast } from "react-toastify";
+import { Mail, Lock, PawPrint, ArrowRight } from "lucide-react";
 
 export default function Login() {
   const { handleLogin, serverError, userDispatch } = useContext(UserContext);
 
+  //  JOI SCHEMA  
+  const loginSchema = Joi.object({
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required()
+      .messages({
+        "string.empty": "Email is required",
+        "string.email": "Enter a valid email address",
+      }),
+
+    password: Joi.string()
+      .min(8)
+      .pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).*/)
+      .required()
+      .messages({
+        "string.empty": "Password is required",
+        "string.min": "Password must be at least 8 characters",
+        "string.pattern.base":
+          "Password must contain 1 uppercase, 1 lowercase and 1 number",
+      }),
+  });
+
+  //  VALIDATOR 
+  const validateWithJoi = (values) => {
+    const { error } = loginSchema.validate(values, {
+      abortEarly: false,
+    });
+
+    if (!error) return {};
+
+    const errors = {};
+    error.details.forEach((item) => {
+      errors[item.path[0]] = item.message.replace(/"/g, "");
+    });
+    return errors;
+  };
+
+  //  FORMIK  
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
     },
+    validateOnChange: false,
+    validateOnBlur: false,
+    validate: validateWithJoi,
     onSubmit: (values, { resetForm }) => {
       toast.info("Logging you in...");
       handleLogin(values, resetForm);
@@ -26,7 +69,6 @@ export default function Login() {
     userDispatch({ type: "CLEAR_ERROR" });
   }, [userDispatch]);
 
-  // whenever serverError changes, show toast
   useEffect(() => {
     if (serverError) {
       toast.error(serverError);
@@ -42,96 +84,115 @@ export default function Login() {
 
     if (!creds) return;
 
-    // Fill formik values
     formik.setFieldValue("email", creds.email);
     formik.setFieldValue("password", creds.password);
-
-    // Login directly
     handleLogin(creds, formik.resetForm);
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col justify-center items-center  px-4">
-      <div className="w-120 h-screen p-20">
-        {/* Heading */}
-        <h2 className="text-center text-xl font-bold text-slate-900 mb-4">
-          Login
-        </h2>
-
-        {/* small demo buttons — replace the current demo button block with this */}
-        <div className="flex items-center gap-2 mt-3">
-          <button
-            type="button"
-            onClick={() => demo("admin")}
-            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
-          >
-            Admin
-          </button>
-
-          <button
-            type="button"
-            onClick={() => demo("provider")}
-            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
-          >
-            Provider
-          </button>
-
-          <button
-            type="button"
-            onClick={() => demo("user")}
-            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100"
-          >
-            User
-          </button>
+    <div className="min-h-fit w-full grid lg:grid-cols-2 overflow-hidden pt-10">
+      {/* LEFT SIDE */}
+      <div className="hidden lg:flex flex-col relative items-center justify-center p-8 overflow-hidden">
+        <div className="text-center z-10 mb-8 max-w-md">
+          <h1 className="text-4xl font-extrabold text-slate-800 flex items-center justify-center gap-3 mb-3">
+            <PawPrint className="text-orange-600" size={32} /> Careonimal
+          </h1>
+          <h2 className="text-2xl font-bold text-slate-700 leading-tight">
+            Welcome back, <br />
+            <span className="text-orange-600">we missed you!</span>
+          </h2>
+          <p className="text-sm text-slate-600 mt-4 leading-relaxed px-4">
+            Your furry friends are waiting. <br />
+            Log in to continue your journey of love and care.
+          </p>
         </div>
+      </div>
 
-        {/* Inline error text if you still want it */}
-        {serverError && (
-          <p className="text-xs text-red-500 text-center mb-2">{serverError}</p>
-        )}
-
-        <form onSubmit={formik.handleSubmit} className="w-full">
-          <div className="flex flex-col gap-3 p-5 bg-white rounded-xl shadow-sm border border-slate-200">
-            {/* Email */}
-            <Input
-              type="email"
-              placeholder="Enter Email"
-              name="email"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              className="h-9 text-sm focus:ring-2 focus:ring-blue-400"
-            />
-
-            {/* Password */}
-            <Input
-              type="password"
-              placeholder="Enter Password"
-              name="password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              className="h-9 text-sm focus:ring-2 focus:ring-blue-400"
-            />
-
-            {/* Submit */}
-            <Button
-              type="submit"
-              className="w-full h-9 text-sm font-medium rounded-md mt-1"
-            >
-              Login
-            </Button>
-
-            {/* Link */}
-            <p className="mt-1 text-[11px] text-center text-slate-500">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Register
-              </Link>
+      {/* RIGHT SIDE */}
+      <div className="flex items-center justify-center p-4">
+        <div className="w-full max-w-[340px] bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-orange-200">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">
+              Welcome Back
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Please enter your details
             </p>
           </div>
-        </form>
+
+          <div className="flex items-center justify-center gap-4 mb-4">
+            {["admin", "provider", "user"].map((role) => (
+              <button key={role} onClick={() => demo(role.toLowerCase())}>
+                {role}
+              </button>
+            ))}
+          </div>
+
+          {serverError && (
+            <div className="mb-3 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-[10px] font-bold border border-red-100 text-center uppercase tracking-wide">
+              {serverError}
+            </div>
+          )}
+
+          <form onSubmit={formik.handleSubmit} className="space-y-2.5">
+            <div className="space-y-2.5">
+              <div className="relative group">
+                <Mail
+                  className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-orange-500 transition-colors"
+                  size={12}
+                />
+                <Input
+                  type="email"
+                  name="email"
+                  {...formik.getFieldProps("email")}
+                  placeholder="Email Address"
+                  className="pl-8 h-8 text-xs font-medium bg-slate-50 border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-xl transition-all"
+                />
+              </div>
+              {formik.errors.email && (
+                <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">
+                  {formik.errors.email}
+                </p>
+              )}
+
+              <div className="relative group">
+                <Lock
+                  className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-orange-500 transition-colors"
+                  size={12}
+                />
+                <Input
+                  type="password"
+                  name="password"
+                  {...formik.getFieldProps("password")}
+                  placeholder="Password"
+                  className="pl-8 h-8 text-xs font-medium bg-slate-50 border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-xl transition-all"
+                />
+              </div>
+              {formik.errors.password && (
+                <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">
+                  {formik.errors.password}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-9 text-xs font-bold uppercase tracking-wider rounded-xl mt-1 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all bg-gradient-to-r from-orange-500 to-orange-600 hover:to-orange-700 text-white"
+            >
+              Sign In <ArrowRight size={12} className="ml-1.5" />
+            </Button>
+
+            <div className="text-center pt-2">
+              <Link
+                to="/register"
+                className="text-[10px] text-slate-400 hover:text-orange-600 font-bold transition-colors"
+              >
+                Don't have an account?{" "}
+                <span className="text-orange-600">Register</span>
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

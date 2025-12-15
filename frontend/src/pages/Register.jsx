@@ -6,13 +6,42 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-
+import Joi from "joi";
 import { toast } from "react-toastify";
+import { User, Mail, Lock, Phone, PawPrint, ArrowRight } from "lucide-react";
+import img from "@/assets/293.jpg";
 
 export default function Register() {
-  const { handleRegister, serverError, userDispatch } = useContext(UserContext);
+  const { handleRegister, serverError, userDispatch } =
+    useContext(UserContext);
+
+  const registerSchema = Joi.object({
+    username: Joi.string().required(),
+
+    email: Joi.string().email({ tlds: false }).required(),
+
+    password: Joi.string()
+      .min(8)
+      .pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/)
+      .required()
+      .messages({
+        "string.min": "Password must be at least 8 characters",
+        "string.pattern.base":
+        "Password must contain 1 Uppercase, 1 number & 1 special character",
+      }),
+
+    phone: Joi.string()
+      .pattern(/^[6-9][0-9]{9}$/)
+      .required()
+      .messages({
+        "string.pattern.base": "Enter a valid 10 digit Indian number",
+      }),
+  });
 
   const formik = useFormik({
+    validateOnChange: false,
+    validateOnBlur: false,
+
     initialValues: {
       username: "",
       email: "",
@@ -21,22 +50,34 @@ export default function Register() {
     },
 
     validate: (values) => {
+      const cleanedValues = {
+        ...values,
+        phone: values.phone?.replace(/\D/g, "").slice(-10),
+      };
+
+      const { error } = registerSchema.validate(cleanedValues, {
+        abortEarly: false,
+      });
+
+      if (!error) return {};
+
       const errors = {};
+      error.details.forEach((d) => {
+        errors[d.path[0]] = d.message;
+      });
 
-      // Extract digits from phone
-      const digits = values.phone?.replace(/\D/g, ""); // "+91 98765 43210" → "919876543210"
-
-      if (!digits) {
-        errors.phone = "Phone number is required";
-      } else if (!digits.startsWith("91") || digits.length !== 12) {
-        errors.phone = "Enter a valid 10 digit Indian number";
-      }
       return errors;
     },
 
     onSubmit: (values, { resetForm }) => {
       toast.info("Registering your account...");
-      handleRegister(values, resetForm);
+      handleRegister(
+        {
+          ...values,
+          phone: values.phone.replace(/\D/g, "").slice(-10),
+        },
+        resetForm
+      );
     },
   });
 
@@ -44,104 +85,118 @@ export default function Register() {
     userDispatch({ type: "CLEAR_ERROR" });
   }, [userDispatch]);
 
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4">
-      <div className="w-100 h-screen p-10">
-        
-        {/* Header */}
-        <div className="text-center mb-4">
-          <h1 className="text-xl text-slate-900 font-bold">Create Account</h1>
+   return (
+    <div className="h-screen w-full grid lg:grid-cols-2 overflow-hidden">
+
+      {/* LEFT SIDE: MULTI-PET GRID */}
+      <div className="hidden lg:flex flex-col relative items-center justify-center p-8 overflow-hidden border-r border-orange-200/50">
+        <div className="text-center z-10 mb-8 max-w-md">
+          <h1 className="text-4xl font-extrabold text-slate-800 flex items-center justify-center gap-3 ">
+            <PawPrint className="text-orange-600" size={32} />Careonimal
+          </h1>
+          <h2 className="text-2xl font-bold text-slate-700 leading-tight">
+            Because they aren't just pets, <br />
+            <span className="text-orange-600">they are family.</span>
+          </h2>
+          <p className="text-sm text-slate-600 mt-4 leading-relaxed px-4">
+            Join a community that understands the bond you share. <br />
+            Trusted professionals, unconditional love.
+          </p>
         </div>
 
-        {/* Backend error */}
-        {serverError && (
-          <p className="text-xs text-red-500 text-center mb-2">
-            {serverError}
-          </p>
-        )}
+        {/* Single Emotional Image */}
+        <div className="relative w-full max-w-[380px] aspect-[4/5] rounded-3xl overflow-hidden  border-white rotate-2 hover:rotate-0 transition-all duration-700">
+          <img
+            src={img}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+            alt="Human and dog bonding"
+          />
+        </div>
+      </div>
 
-        {/* Form */}
-        <form
-          onSubmit={formik.handleSubmit}
-          className="bg-white/95 border border-slate-200 rounded-xl shadow-sm px-4 py-5 space-y-3"
-        >
-          {/* Username */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-700">Username</label>
-            <Input
-              type="text"
-              name="username"
-              value={formik.values.username}
-              onChange={formik.handleChange}
-              placeholder="Enter username"
-              className="h-9 text-sm"
-            />
+      {/* RIGHT SIDE: FORM (Ultra Compact) */}
+      <div className="flex items-center justify-center p-4">
+        <div className="w-full max-w-[340px] bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl">
+
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">Create Account</h2>
+            <p className="text-xs text-slate-500 mt-1">Join our community in seconds</p>
           </div>
 
-          {/* Email */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-700">Email</label>
-            <Input
-              type="email"
-              name="email"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              placeholder="Enter email"
-              className="h-9 text-sm"
-            />
-          </div>
+          {serverError && (
+            <div className="mb-3 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-[10px] font-bold border border-red-100 text-center uppercase tracking-wide">
+              {serverError}
+            </div>
+          )}
 
-          {/* Password */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-700">Password</label>
-            <Input
-              type="password"
-              name="password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              placeholder="Enter password"
-              className="h-9 text-sm"
-            />
-          </div>
+          <form onSubmit={formik.handleSubmit} className="space-y-2.5">
 
-          {/* Phone */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-700">Phone number</label>
-            
-            <div className="border border-slate-200 rounded-md px-2 py-1.5 bg-white text-sm focus-within:ring-2 focus-within:ring-blue-400">
-              <PhoneInput
-                defaultCountry="IN" // <-- +91 by default
-                value={formik.values.phone}
-                onChange={(value) => formik.setFieldValue("phone", value)}
-                placeholder="Enter phone number"
-                className="PhoneInputInput outline-none w-full text-sm"
-              />
+            <div className="space-y-2.5">
+              <div className="relative group">
+                <User className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={12} />
+                <Input
+                  type="text"
+                  name="username"
+                  {...formik.getFieldProps('username')}
+                  placeholder="Username"
+                  className="pl-8 h-8 text-xs font-medium bg-slate-50 border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-xl transition-all"
+                />
+              </div>
+              {formik.errors.username && <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">{formik.errors.username}</p>}
+
+              <div className="relative group">
+                <Mail className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={12} />
+                <Input
+                  type="email"
+                  name="email"
+                  {...formik.getFieldProps('email')}
+                  placeholder="Email Address"
+                  className="pl-8 h-8 text-xs font-medium bg-slate-50 border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-xl transition-all"
+                />
+              </div>
+              {formik.errors.email && <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">{formik.errors.email}</p>}
+
+              <div className="relative group">
+                <Lock className="absolute left-3 top-2.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={12} />
+                <Input
+                  type="password"
+                  name="password"
+                  {...formik.getFieldProps('password')}
+                  placeholder="Password"
+                  className="pl-8 h-8 text-xs font-medium bg-slate-50 border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-xl transition-all"
+                />
+              </div>
+              {formik.errors.password && <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">{formik.errors.password}</p>}
+
+              <div className={`relative flex items-center bg-slate-50 border rounded-xl px-3 focus-within:ring-2 focus-within:ring-orange-100 focus-within:border-orange-500 transition-all ${formik.errors.phone ? 'border-red-300' : 'border-slate-200'}`}>
+                <Phone className="text-slate-400 mr-2 flex-shrink-0 group-focus-within:text-orange-500" size={12} />
+                <div className="w-full">
+                  <PhoneInput
+                    defaultCountry="IN"
+                    value={formik.values.phone}
+                    onChange={(value) => formik.setFieldValue("phone", value)}
+                    placeholder="Mobile Number"
+                    className="PhoneInputInput outline-none bg-transparent w-full text-xs font-medium h-8"
+                  />
+                </div>
+              </div>
+              {formik.errors.phone && <p className="text-[10px] text-red-500 ml-1 font-bold leading-none">{formik.errors.phone}</p>}
             </div>
 
-            {formik.errors.phone && (
-              <p className="text-[11px] text-red-500">
-                {formik.errors.phone}
-              </p>
-            )}
-          </div>
+            <Button
+              type="submit"
+              className="w-full h-9 text-xs font-bold uppercase tracking-wider rounded-xl mt-1 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all bg-gradient-to-r from-orange-500 to-orange-600 hover:to-orange-700 text-white"
+            >
+              Register <ArrowRight size={12} className="ml-1.5" />
+            </Button>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            className="w-full h-9 text-sm font-medium rounded-md mt-1"
-          >
-            Register
-          </Button>
-            <p className="mt-1 text-[11px] text-center text-slate-500">
-              Already registered?{" "}
-              <Link
-                to="/login"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Login
+            <div className="text-center pt-2">
+              <Link to="/login" className="text-[10px] text-slate-400 hover:text-orange-600 font-bold transition-colors">
+                Already have an account? <span className="text-orange-600">Log in</span>
               </Link>
-            </p>
-        </form>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
