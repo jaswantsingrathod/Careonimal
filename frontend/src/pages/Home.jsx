@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PawPrint, Calendar, Dog, Search } from "lucide-react";
 import img from "../assets/dog.gif";
@@ -36,11 +36,16 @@ export default function Home() {
     loading,
     searchingNearby,
     userCoords,
-    serviceType,
-    petType,
-    radiusKm,
+    serviceType: reduxServiceType,
+    petType: reduxPetType,
+    radiusKm: reduxRadiusKm,
     confirmOpen,
   } = useSelector((state) => state.nearby);
+
+  // Local state to prevent Redux dispatch on every keystroke
+  const [localPetType, setLocalPetType] = useState(reduxPetType || "");
+  const [localServiceType, setLocalServiceType] = useState(reduxServiceType || "");
+  const [localRadius, setLocalRadius] = useState(reduxRadiusKm || 10);
 
   useEffect(() => {
     if (state?.providerSubmitted) {
@@ -50,25 +55,18 @@ export default function Home() {
     }
   }, [state?.providerSubmitted]);
 
+  // Sync redux state to local state if needed (e.g. coming back to page)
+  useEffect(() => {
+    setLocalPetType(reduxPetType || "");
+    setLocalServiceType(reduxServiceType || "all");
+    setLocalRadius(reduxRadiusKm || 10);
+  }, [reduxPetType, reduxServiceType, reduxRadiusKm]);
+
   // ---------------- SEARCH HANDLER  --------------
   const openConfirm = async (e) => {
     e?.preventDefault?.();
 
-    if (userCoords?.lat && userCoords?.lng) {
-      dispatch(setSearchingNearby(true));
-
-      dispatch(
-        fetchNearbyProviders({
-          lat: userCoords.lat,
-          lng: userCoords.lng,
-          radiusKm,
-          serviceType,
-          petType,
-        })
-      );
-      return;
-    }
-
+    // Check permissions first
     if (!("geolocation" in navigator)) {
       toast.error("Geolocation not supported by your browser.");
       return;
@@ -78,14 +76,29 @@ export default function Home() {
       try {
         const perm = await navigator.permissions.query({ name: "geolocation" });
         if (perm.state === "denied") {
-          toast.error(
-            "Location permission is blocked. Enable it in browser settings."
-          );
+          toast.error("Location permission is blocked. Enable it in browser settings.");
           return;
         }
-      } catch {
-        // ignore
-      }
+      } catch { }
+    }
+
+    // Sync local state to Redux before searching
+    dispatch(setPetType(localPetType));
+    dispatch(setServiceType(localServiceType));
+    dispatch(setRadiusKm(localRadius));
+
+    if (userCoords?.lat && userCoords?.lng) {
+      dispatch(setSearchingNearby(true));
+      dispatch(
+        fetchNearbyProviders({
+          lat: userCoords.lat,
+          lng: userCoords.lng,
+          radiusKm: localRadius,
+          serviceType: localServiceType === "all" ? "" : localServiceType,
+          petType: localPetType,
+        })
+      );
+      return;
     }
 
     dispatch(setConfirmOpen(true));
@@ -102,13 +115,19 @@ export default function Home() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         dispatch(setUserCoords({ lat, lng }));
+
+        // Ensure Redux is updated (in case search didn't run via openConfirm path)
+        dispatch(setPetType(localPetType));
+        dispatch(setServiceType(localServiceType));
+        dispatch(setRadiusKm(localRadius));
+
         dispatch(
           fetchNearbyProviders({
             lat,
             lng,
-            radiusKm,
-            serviceType,
-            petType,
+            radiusKm: localRadius,
+            serviceType: localServiceType === "all" ? "" : localServiceType,
+            petType: localPetType,
           })
         );
       },
@@ -150,8 +169,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
-            Find the best <span className="text-orange-600">pet care</span> near
-            you
+            Find the best <span className="text-orange-600">pet care</span> near you
           </h1>
 
           <p className="text-neutral-600 text-sm max-w-xl">
@@ -160,9 +178,7 @@ export default function Home() {
 
           {user?.role !== "provider" && (
             <button
-              onClick={() =>
-                !isLoggedIn ? navigate("/login") : navigate("/provider")
-              }
+              onClick={() => !isLoggedIn ? navigate("/login") : navigate("/provider")}
               className="rounded-full px-6 py-2 text-sm bg-green-500 hover:bg-green-600 text-white shadow"
             >
               Offer Pet Care
@@ -172,11 +188,7 @@ export default function Home() {
 
         <div className="flex justify-center md:justify-end">
           <div className="relative h-72 w-72 lg:h-80 lg:w-80 rounded-2xl overflow-hidden bg-orange-50 shadow-inner">
-            <img
-              src={img}
-              alt="happy dog"
-              className="h-full w-full object-cover"
-            />
+            <img src={img} alt="happy dog" className="h-full w-full object-cover" />
           </div>
         </div>
       </div>
@@ -196,22 +208,15 @@ export default function Home() {
               <Dog className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500 shrink-0" />
 
               <Select
-                value={serviceType}
-                onValueChange={(value) => dispatch(setServiceType(value))}
+                value={localServiceType}
+                onValueChange={setLocalServiceType}
               >
-                <SelectTrigger
-                  className="
-        border-none shadow-none
-        focus:ring-0 focus:ring-offset-0
-        h-auto p-0
-        text-sm font-medium
-        text-slate-700
-      "
-                >
+                <SelectTrigger className="border-none shadow-none focus:ring-0 focus:ring-offset-0 h-auto p-0 text-sm font-medium text-slate-700">
                   <SelectValue placeholder="Any Service" />
                 </SelectTrigger>
 
                 <SelectContent className="rounded-xl">
+                  <SelectItem value="all">Any service</SelectItem>
                   <SelectItem value="vet">Veterinary Care </SelectItem>
                   <SelectItem value="groomer">Pet Grooming</SelectItem>
                   <SelectItem value="boarding">Pet Boarding</SelectItem>
@@ -223,8 +228,8 @@ export default function Home() {
             <div className="flex items-center gap-3 rounded-xl border px-3 py-2 sm:px-4 sm:py-3">
               <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
               <input
-                value={petType}
-                onChange={(e) => dispatch(setPetType(e.target.value))}
+                value={localPetType}
+                onChange={(e) => setLocalPetType(e.target.value)}
                 placeholder="Dog, Cat..."
                 className="text-sm font-medium bg-transparent outline-none w-full"
               />
@@ -240,10 +245,8 @@ export default function Home() {
                 <input
                   type="number"
                   min={1}
-                  value={radiusKm}
-                  onChange={(e) =>
-                    dispatch(setRadiusKm(Number(e.target.value)))
-                  }
+                  value={localRadius}
+                  onChange={(e) => setLocalRadius(Number(e.target.value))}
                   className="w-14 sm:w-16 text-sm outline-none"
                 />
                 <span className="text-xs text-neutral-400">km</span>
@@ -275,18 +278,8 @@ export default function Home() {
               We need your location to show nearby providers.
             </p>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={onModalDeny}
-                className="px-3 py-1 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onModalAllow}
-                className="px-3 py-1 bg-blue-600 text-white rounded"
-              >
-                Allow
-              </button>
+              <button onClick={onModalDeny} className="px-3 py-1 border rounded">Cancel</button>
+              <button onClick={onModalAllow} className="px-3 py-1 bg-blue-600 text-white rounded">Allow</button>
             </div>
           </div>
         </div>
@@ -318,8 +311,8 @@ export default function Home() {
           </div>
         )}
       </section>
-
       <Footer />
     </div>
   );
 }
+``
