@@ -26,10 +26,17 @@ export default function ProviderCard({ provider, onView }) {
 
       {/* CONTENT */}
       <div className="p-3 space-y-1.5">
-        <h3 className="font-semibold text-slate-800 text-sm truncate">
-          {provider.businessName}
-        </h3>
-
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-slate-800 text-sm truncate">
+            {provider.businessName}
+          </h3>
+          {provider.priceRange && (
+            <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded whitespace-nowrap">
+              Price Range: ₹
+              {provider.priceRange.replace(/\s+/g, "").replace("-", " – ₹")}
+            </span>
+          )}
+        </div>
         <p className="text-[10px] text-orange-600 font-medium uppercase">
           {provider.serviceType}
         </p>
