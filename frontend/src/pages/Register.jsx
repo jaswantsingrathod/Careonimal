@@ -4,8 +4,7 @@ import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
+
 import Joi from "joi";
 import { toast } from "react-toastify";
 import { User, Mail, Lock, Phone, PawPrint, ArrowRight } from "lucide-react";
@@ -15,7 +14,6 @@ export default function Register() {
   const { handleRegister, serverError, userDispatch } =
     useContext(UserContext);
 
-  // ✅ Joi schema EXPECTS +91XXXXXXXXXX
   const registerSchema = Joi.object({
     username: Joi.string().required(),
 
@@ -32,7 +30,7 @@ export default function Register() {
       }),
 
     phone: Joi.string()
-      .pattern(/^\+91[6-9][0-9]{9}$/)
+      .pattern(/^[6-9][0-9]{9}$/)
       .required()
       .messages({
         "string.pattern.base": "Enter a valid 10 digit Indian mobile number",
@@ -50,13 +48,10 @@ export default function Register() {
       phone: "",
     },
 
-    // ✅ Convert phone to +91XXXXXXXXXX BEFORE validation
     validate: (values) => {
-      const digits = values.phone?.replace(/\D/g, "").slice(-10);
-
       const cleanedValues = {
         ...values,
-        phone: digits ? `+91${digits}` : "",
+        phone: values.phone?.replace(/\D/g, ""),
       };
 
       const { error } = registerSchema.validate(cleanedValues, {
@@ -73,11 +68,10 @@ export default function Register() {
       return errors;
     },
 
-    // ✅ Send +91XXXXXXXXXX to backend
     onSubmit: (values, { resetForm }) => {
       toast.info("Registering your account...");
 
-      const digits = values.phone.replace(/\D/g, "").slice(-10);
+      const digits = values.phone.replace(/\D/g, "");
 
       handleRegister(
         {
@@ -144,12 +138,15 @@ export default function Register() {
 
             {/* Username */}
             <div>
-              <Input
-                name="username"
-                {...formik.getFieldProps("username")}
-                placeholder="Username"
-                className="h-8 text-xs"
-              />
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 text-slate-400" size={14} />
+                <Input
+                  name="username"
+                  {...formik.getFieldProps("username")}
+                  placeholder="Username"
+                  className="h-8 text-xs pl-9"
+                />
+              </div>
               {formik.errors.username && (
                 <p className="text-[10px] text-red-500 font-bold">
                   {formik.errors.username}
@@ -159,12 +156,15 @@ export default function Register() {
 
             {/* Email */}
             <div>
-              <Input
-                name="email"
-                {...formik.getFieldProps("email")}
-                placeholder="Email"
-                className="h-8 text-xs"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 text-slate-400" size={14} />
+                <Input
+                  name="email"
+                  {...formik.getFieldProps("email")}
+                  placeholder="Email"
+                  className="h-8 text-xs pl-9"
+                />
+              </div>
               {formik.errors.email && (
                 <p className="text-[10px] text-red-500 font-bold">
                   {formik.errors.email}
@@ -174,13 +174,16 @@ export default function Register() {
 
             {/* Password */}
             <div>
-              <Input
-                type="password"
-                name="password"
-                {...formik.getFieldProps("password")}
-                placeholder="Password"
-                className="h-8 text-xs"
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 text-slate-400" size={14} />
+                <Input
+                  type="password"
+                  name="password"
+                  {...formik.getFieldProps("password")}
+                  placeholder="Password"
+                  className="h-8 text-xs pl-9"
+                />
+              </div>
               {formik.errors.password && (
                 <p className="text-[10px] text-red-500 font-bold">
                   {formik.errors.password}
@@ -190,14 +193,16 @@ export default function Register() {
 
             {/* Phone */}
             <div>
-              <div className={`flex items-center border rounded-xl px-3 ${formik.errors.phone ? "border-red-300" : "border-slate-200"}`}>
+              <div className="flex items-center border rounded-xl px-3 border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
                 <Phone size={12} className="text-slate-400 mr-2" />
-                <PhoneInput
-                  defaultCountry="IN"
-                  value={formik.values.phone}
-                  onChange={(value) => formik.setFieldValue("phone", value)}
-                  placeholder="Mobile Number"
-                  className="PhoneInputInput outline-none bg-transparent w-full text-xs h-8"
+                <span className="text-xs font-medium text-slate-600">+91</span>
+                <Input
+                  type="tel"
+                  name="phone"
+                  {...formik.getFieldProps("phone")}
+                  placeholder="10-digit mobile number"
+                  maxLength={10}
+                  className="flex-1 h-8 text-xs border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent pl-1"
                 />
               </div>
               {formik.errors.phone && (

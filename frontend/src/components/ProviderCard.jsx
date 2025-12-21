@@ -1,41 +1,55 @@
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, Navigation } from "lucide-react";
 
 export default function ProviderCard({ provider, onView }) {
   return (
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden border border-orange-100">
-      <div className="relative h-40">
+    <div className="bg-white rounded-xl shadow-sm  border border-orange-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+      {/* IMAGE */}
+      <div className="relative h-32">
         <img
           src={provider.image || "/assets/provider-placeholder.jpg"}
           alt={provider.businessName}
           className="h-full w-full object-cover"
         />
-        <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
+
+        <span className="absolute top-2 right-2 bg-white px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 shadow">
           <Star className="h-3 w-3 text-yellow-500" />
-          {provider.rating}
+          {provider.rating || 0}
         </span>
+
+        {typeof provider.distance === "number" && (
+          <span className="absolute top-2 left-2 bg-white px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 shadow">
+            <Navigation className="h-3 w-3 text-orange-500" />
+            {provider.distance} Km Away
+          </span>
+        )}
       </div>
 
-      <div className="p-4 space-y-2">
-        <h3 className="font-semibold text-slate-800 text-lg">
+      {/* CONTENT */}
+      <div className="p-3 space-y-1.5">
+        <h3 className="font-semibold text-slate-800 text-sm truncate">
           {provider.businessName}
         </h3>
 
-        <p className="text-xs text-orange-600 font-medium uppercase">
+        <p className="text-[10px] text-orange-600 font-medium uppercase">
           {provider.serviceType}
         </p>
 
-        <p className="text-sm text-slate-500 line-clamp-2">
+        <p className="text-xs text-slate-500 line-clamp-2">
           {provider.description || "Trusted pet care provider"}
         </p>
 
-        <div className="flex items-center gap-1 text-xs text-slate-400">
-          <MapPin className="h-3 w-3" />
-          {provider.location?.address || "Nearby"}
+        <div className="flex items-center justify-between text-[10px] text-slate-400">
+          <div className="flex items-center gap-1 truncate">
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span className="truncate">
+              {provider.location?.address || "Nearby"}
+            </span>
+          </div>
         </div>
 
         <button
           onClick={() => onView(provider)}
-          className="mt-3 w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-xl text-sm font-medium"
+          className="mt-2 w-full bg-orange-600 hover:bg-orange-700 text-white py-1.5 rounded-lg text-xs font-medium"
         >
           View Profile
         </button>

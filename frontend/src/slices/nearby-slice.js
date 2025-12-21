@@ -1,57 +1,65 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "../config/axios"; 
+import axios from "../config/axios";
+
+// Thunk
 export const fetchNearbyProviders = createAsyncThunk(
   "nearby/fetchNearbyProviders",
-  async ({ lat, lng, radiusKm }, { rejectWithValue }) => {
+  async (
+    { lat, lng, radiusKm, serviceType, petType },
+    { rejectWithValue }
+  ) => {
     try {
       const res = await axios.get("/providers/nearby", {
-        params: { lat, lng, radius: radiusKm },
+        params: {
+          lat,
+          lng,
+          radius: radiusKm,
+          serviceType,
+          petType,
+        },
       });
-      const json = res.data;
-      const list = Array.isArray(json.providers) ? json.providers : [];
 
-      // Normalize distances to km 
-      const normalized = list.map((p) => {
-        const distance =
-          p.distance != null
-            ? Number(p.distance)
-            : p.distanceKm != null
-            ? Number(p.distanceKm)
-            : p.distanceMeters != null
-            ? Number((p.distanceMeters / 1000).toFixed(2))
-            : null;
-        return { ...p, distance };
-      });
+      const list = Array.isArray(res.data?.providers)
+        ? res.data.providers
+        : [];
+
+      const normalized = list.map((p) => ({
+        ...p,
+        distance: p.distance != null ? Number(p.distance) : null,
+      }));
 
       return normalized;
     } catch (err) {
-      return rejectWithValue(err.response?.data || err.message || "Fetch failed");
+      return rejectWithValue(
+        err.response?.data || err.message || "Fetch failed"
+      );
     }
   }
 );
 
+/* ---------------- INITIAL STATE ---------------- */
 const initialState = {
   providers: [],
-  loadingProviders: false,
+  loading: false,
   searchingNearby: false,
   userCoords: null,
-  qService: "",
-  qCity: "",
-  qPetType: "",
+  serviceType: "",
+  petType: "",
   radiusKm: 10,
   confirmOpen: false,
   error: null,
 };
 
+/* ---------------- SLICE ---------------- */
 const slice = createSlice({
   name: "nearby",
   initialState,
   reducers: {
-    setQService(state, action) {
-      state.qService = action.payload;
+    setServiceType(state, action) {
+      state.serviceType = action.payload;
     },
-    setQPetType(state, action) {
-      state.qPetType = action.payload;
+    setPetType(state, action) {
+      state.petType = action.payload;
     },
     setRadiusKm(state, action) {
       state.radiusKm = action.payload;
@@ -68,24 +76,20 @@ const slice = createSlice({
     setSearchingNearby(state, action) {
       state.searchingNearby = action.payload;
     },
-    setLoadingProviders(state, action) {
-      state.loadingProviders = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchNearbyProviders.pending, (state) => {
-        state.loadingProviders = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(fetchNearbyProviders.fulfilled, (state, action) => {
-        state.providers = action.payload || [];
-        state.loadingProviders = false;
+        state.providers = action.payload;
+        state.loading = false;
         state.searchingNearby = false;
-        state.error = null;
       })
       .addCase(fetchNearbyProviders.rejected, (state, action) => {
-        state.loadingProviders = false;
+        state.loading = false;
         state.searchingNearby = false;
         state.error = action.payload || "Failed to fetch";
       });
@@ -93,15 +97,13 @@ const slice = createSlice({
 });
 
 export const {
-  setQService,
-  setQPetType,
+  setServiceType,
+  setPetType,
   setRadiusKm,
   setConfirmOpen,
   setUserCoords,
   clearProviders,
   setSearchingNearby,
-  setLoadingProviders,
-  applyClientFilters,
 } = slice.actions;
 
 export default slice.reducer;

@@ -53,8 +53,6 @@ export default function ProviderBookings() {
   }, [bookings, statusFilter, q]);
 
   const handleStatusChange = async (booking, newStatus) => {
-    // map frontend actions to your bookingStatus enum values:
-    // Accept => "confirmed", Reject => "cancelled", Complete => "completed"
     const payload = { id: booking._id, bookingStatus: newStatus };
     console.log("Updating booking status with payload:", payload);
     if (!confirm(`Are you sure you want to set this booking to "${newStatus}"?`)) return;

@@ -19,7 +19,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-// shadcn Dialog (uncontrolled)
 import {
   Dialog,
   DialogTrigger,

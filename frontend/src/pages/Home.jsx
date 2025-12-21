@@ -6,35 +6,41 @@ import Footer from "../components/Footer";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserContext from "../context/User-Context";
 import { toast } from "react-toastify";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import ProviderCard from "../components/ProviderCard";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  setQService,
-  setQPetType,
+  setServiceType,
+  setPetType,
   setRadiusKm,
   setConfirmOpen,
   setUserCoords,
   setSearchingNearby,
   fetchNearbyProviders,
-  applyClientFilters,
 } from "../slices/nearby-slice";
 
 export default function Home() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { isLoggedIn, user } = useContext(UserContext);
-
   const dispatch = useDispatch();
+
   const {
     providers,
-    loadingProviders,
+    loading,
     searchingNearby,
     userCoords,
-    qService,
-    qPetType,
+    serviceType,
+    petType,
     radiusKm,
     confirmOpen,
-  } = useSelector((s) => s.nearby);
+  } = useSelector((state) => state.nearby);
 
   useEffect(() => {
     if (state?.providerSubmitted) {
@@ -44,9 +50,25 @@ export default function Home() {
     }
   }, [state?.providerSubmitted]);
 
-  // openConfirm toggles modal; uses Permissions API to early-detect 'denied'
+  // ---------------- SEARCH HANDLER  --------------
   const openConfirm = async (e) => {
     e?.preventDefault?.();
+
+    if (userCoords?.lat && userCoords?.lng) {
+      dispatch(setSearchingNearby(true));
+
+      dispatch(
+        fetchNearbyProviders({
+          lat: userCoords.lat,
+          lng: userCoords.lng,
+          radiusKm,
+          serviceType,
+          petType,
+        })
+      );
+      return;
+    }
+
     if (!("geolocation" in navigator)) {
       toast.error("Geolocation not supported by your browser.");
       return;
@@ -57,67 +79,57 @@ export default function Home() {
         const perm = await navigator.permissions.query({ name: "geolocation" });
         if (perm.state === "denied") {
           toast.error(
-            "Location permission is blocked. Please enable it in your browser/site settings and try again."
+            "Location permission is blocked. Enable it in browser settings."
           );
           return;
         }
-      } catch (err) {
-        // ignore and continue to open modal
+      } catch {
+        // ignore
       }
     }
 
     dispatch(setConfirmOpen(true));
   };
 
+  /* ---------------- ALLOW LOCATION ---------------- */
   const onModalAllow = (e) => {
     e?.preventDefault?.();
     dispatch(setConfirmOpen(false));
     dispatch(setSearchingNearby(true));
 
-    // Call getCurrentPosition immediately so the browser will show prompt
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         dispatch(setUserCoords({ lat, lng }));
-
-        // dispatch thunk to fetch from server
-        dispatch(fetchNearbyProviders({ lat, lng, radiusKm }))
-          .unwrap()
-          .then(() => {
-            // apply client-side filters (if any)
-            dispatch(applyClientFilters());
+        dispatch(
+          fetchNearbyProviders({
+            lat,
+            lng,
+            radiusKm,
+            serviceType,
+            petType,
           })
-          .catch((err) => {
-            console.warn(
-              "Nearby fetch failed — falling back to client Haversine:",
-              err
-            );
-            toast.info(
-              "Server lookup failed; showing local results if available."
-            );
-          });
+        );
       },
       (err) => {
-        console.error("Geolocation error:", err);
         dispatch(setSearchingNearby(false));
         if (err.code === err.PERMISSION_DENIED) {
-          toast.error(
-            "You denied location access. Please enable it in your browser/site settings if you want nearby results."
-          );
+          toast.error("Location access denied.");
         } else {
-          toast.error("Failed to get location. Try again.");
+          toast.error("Failed to get location.");
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
     );
   };
 
   const onModalDeny = () => {
     dispatch(setConfirmOpen(false));
-    toast.info("Location permission required to show nearby providers.");
+    toast.info("Location permission required to search nearby providers.");
   };
 
+  /* ---------------- OPEN PROFILE ---------------- */
   const openProfile = (prov) => {
     if (!isLoggedIn) {
       toast.error("Please login to view provider profile");
@@ -129,7 +141,7 @@ export default function Home() {
 
   return (
     <div className="w-full max-w-7xl mx-auto">
-      {/* HERO & SEARCH */}
+      {/* HERO */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center p-8 lg:p-10">
         <div className="space-y-6">
           <div className="inline-flex items-center gap-3 rounded-full bg-orange-50 px-4 py-1 text-xs font-semibold text-orange-700 w-max shadow-sm">
@@ -137,33 +149,29 @@ export default function Home() {
             <span>Trusted pet services nearby</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight text-slate-900">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
             Find the best <span className="text-orange-600">pet care</span> near
             you
           </h1>
 
           <p className="text-neutral-600 text-sm max-w-xl">
-            Book vets, groomers & boarders with verified profiles and real
-            reviews. Quick search — instant results.
+            Book vets, groomers & boarders with verified profiles and reviews.
           </p>
 
-          <div className="flex flex-wrap gap-3 items-center">
-            {user?.role !== "provider" && (
-              <button
-                onClick={() => {
-                  if (!isLoggedIn) navigate("/login");
-                  else navigate("/provider");
-                }}
-                className="rounded-full px-6 py-2 text-sm bg-green-500 hover:bg-green-600 text-white shadow"
-              >
-                Offer Pet Care
-              </button>
-            )}
-          </div>
+          {user?.role !== "provider" && (
+            <button
+              onClick={() =>
+                !isLoggedIn ? navigate("/login") : navigate("/provider")
+              }
+              className="rounded-full px-6 py-2 text-sm bg-green-500 hover:bg-green-600 text-white shadow"
+            >
+              Offer Pet Care
+            </button>
+          )}
         </div>
 
         <div className="flex justify-center md:justify-end">
-          <div className="relative h-72 w-72 lg:h-80 lg:w-80 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-white shadow-inner">
+          <div className="relative h-72 w-72 lg:h-80 lg:w-80 rounded-2xl overflow-hidden bg-orange-50 shadow-inner">
             <img
               src={img}
               alt="happy dog"
@@ -174,66 +182,72 @@ export default function Home() {
       </div>
 
       {/* SEARCH PANEL */}
-      <div className="px-6 pb-1">
+      <div className="px-4 sm:px-6 pb-2">
         <form
           onSubmit={openConfirm}
-          className="-mt-1 mx-auto max-w-4xl
-               bg-white rounded-2xl shadow-xl
-               border border-orange-200
-               p-5 flex flex-col md:flex-row gap-4 items-stretch"
+          className="mx-auto max-w-4xl bg-white rounded-2xl shadow-xl border border-orange-200
+               p-4 sm:p-5
+               flex flex-col gap-4
+               md:flex-row md:items-center"
         >
-          {/* LEFT FILTERS */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Service */}
-            <div className="flex items-center gap-3 rounded-xl border border-orange-100 px-4 py-3">
-              <Dog className="h-5 w-5 text-orange-500 shrink-0" />
-              <div className="flex flex-col w-full">
-                <label className="text-[11px] text-neutral-500 mb-0.5">
-                  Service
-                </label>
-                <select
-                  value={qService}
-                  onChange={(e) => dispatch(setQService(e.target.value))}
-                  className="text-sm font-medium text-neutral-800 bg-transparent outline-none"
+            <div className="flex items-center gap-3 rounded-xl border px-3 py-2 sm:px-4 sm:py-3 bg-white">
+              <Dog className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500 shrink-0" />
+
+              <Select
+                value={serviceType}
+                onValueChange={(value) => dispatch(setServiceType(value))}
+              >
+                <SelectTrigger
+                  className="
+        border-none shadow-none
+        focus:ring-0 focus:ring-offset-0
+        h-auto p-0
+        text-sm font-medium
+        text-slate-700
+      "
                 >
-                  <option value="">Any</option>
-                  <option value="boarding">Boarding</option>
-                  <option value="vet">Vet</option>
-                  <option value="groomer">Groomer</option>
-                </select>
-              </div>
+                  <SelectValue placeholder="Any Service" />
+                </SelectTrigger>
+
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="vet">Veterinary Care </SelectItem>
+                  <SelectItem value="groomer">Pet Grooming</SelectItem>
+                  <SelectItem value="boarding">Pet Boarding</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Pet Type */}
-            <div className="flex items-center gap-3 rounded-xl border border-orange-100 px-4 py-3">
-              <Calendar className="h-5 w-5 text-orange-500 shrink-0" />
-              <div className="flex flex-col w-full">
-                <label className="text-[11px] text-neutral-500 mb-0.5">
-                  Pet Type
-                </label>
-                <input
-                  value={qPetType}
-                  onChange={(e) => dispatch(setQPetType(e.target.value))}
-                  placeholder="Dog, Cat..."
-                  className="text-sm font-medium text-neutral-800 bg-transparent outline-none"
-                />
-              </div>
+            <div className="flex items-center gap-3 rounded-xl border px-3 py-2 sm:px-4 sm:py-3">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+              <input
+                value={petType}
+                onChange={(e) => dispatch(setPetType(e.target.value))}
+                placeholder="Dog, Cat..."
+                className="text-sm font-medium bg-transparent outline-none w-full"
+              />
             </div>
           </div>
 
-          {/* RIGHT ACTIONS */}
-          <div className="flex items-center gap-3 md:pl-4">
+          {/* ACTIONS */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
             {/* Radius */}
-            <div className="flex items-center gap-2 rounded-xl border border-orange-100 px-4 py-3">
-              <label className="text-[11px] text-neutral-500">Radius</label>
-              <input
-                type="number"
-                min={1}
-                value={radiusKm}
-                onChange={(e) => dispatch(setRadiusKm(Number(e.target.value)))}
-                className="w-20 text-sm font-medium text-neutral-800 bg-transparent outline-none"
-              />
-              <span className="text-xs text-neutral-400">km</span>
+            <div className="flex items-center justify-between sm:justify-start gap-2 rounded-xl border px-3 py-2 sm:px-4 sm:py-3">
+              <label className="text-xs text-slate-500">Radius</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={1}
+                  value={radiusKm}
+                  onChange={(e) =>
+                    dispatch(setRadiusKm(Number(e.target.value)))
+                  }
+                  className="w-14 sm:w-16 text-sm outline-none"
+                />
+                <span className="text-xs text-neutral-400">km</span>
+              </div>
             </div>
 
             {/* Search Button */}
@@ -241,41 +255,35 @@ export default function Home() {
               type="submit"
               disabled={searchingNearby}
               className="rounded-full bg-orange-600 hover:bg-orange-700
-                   px-6 py-3 text-white shadow-md
-                   flex items-center gap-2 whitespace-nowrap"
+                   px-5 py-2.5 sm:px-6 sm:py-3
+                   text-sm text-white
+                   w-full sm:w-auto"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-4 w-4 mr-2" />
               {searchingNearby ? "Searching..." : "Search"}
             </Button>
           </div>
         </form>
-
-        <p className="mt-3 text-xs text-neutral-500 text-center">
-          Select service, pet type and radius — then click search
-        </p>
       </div>
 
-      {/* Confirmation modal (redux-driven) */}
+      {/* CONFIRM MODAL */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-2">
-              Allow location access?
-            </h3>
-            <p className="mb-4 text-sm text-neutral-600">
-              We need your location to find providers near you. The browser will
-              ask for permission.
+          <div className="bg-white p-6 rounded-xl w-96">
+            <h3 className="font-semibold mb-2">Allow location access?</h3>
+            <p className="text-sm text-neutral-600 mb-4">
+              We need your location to show nearby providers.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={onModalDeny}
-                className="px-3 py-1 rounded border"
+                className="px-3 py-1 border rounded"
               >
                 Cancel
               </button>
               <button
                 onClick={onModalAllow}
-                className="px-3 py-1 rounded bg-blue-600 text-white"
+                className="px-3 py-1 bg-blue-600 text-white rounded"
               >
                 Allow
               </button>
@@ -284,52 +292,21 @@ export default function Home() {
         </div>
       )}
 
-      {/* PROVIDERS GRID */}
+      {/* PROVIDERS */}
       <section className="mt-10">
-        <div className="flex items-center justify-between mb-5">
-          <div className="text-sm text-neutral-500">
-            {userCoords
-              ? `Showing near (${userCoords.lat.toFixed(
-                  3
-                )}, ${userCoords.lng.toFixed(3)})`
-              : ""}
-          </div>
-        </div>
-
-        {/* LOADING */}
-        {loadingProviders || searchingNearby ? (
-          <div className="flex items-center justify-center py-14">
+        {loading || searchingNearby ? (
+          <div className="flex justify-center py-14">
             <div className="animate-spin h-8 w-8 border-2 border-orange-400 border-t-transparent rounded-full" />
           </div>
-        ) : /* NOT SEARCHED YET */
-        !userCoords && providers.length === 0 ? (
+        ) : !userCoords ? (
           <div className="text-center py-20 text-slate-500">
-            <div className="mx-auto rounded-2xl flex items-center justify-center mb-5 text-4xl">
-              🔍🐾
-            </div>
-            <p className="font-medium text-slate-700">
-              Please search to find nearby providers
-            </p>
+            Please search to find nearby providers
           </div>
-        ) : /* SEARCHED BUT NO RESULTS */
-        providers.length === 0 ? (
+        ) : providers.length === 0 ? (
           <div className="text-center py-20 text-slate-500">
-            <div className="mx-auto w-40 h-40 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
-              <img
-                src="/assets/placeholder-dog.svg"
-                alt="no providers"
-                className="w-24 h-24 opacity-80"
-              />
-            </div>
-            <p className="font-medium text-slate-700 mb-1">
-              No providers found
-            </p>
-            <p className="text-xs text-neutral-500">
-              Try increasing radius or changing filters
-            </p>
+            No providers found. Try changing filters.
           </div>
         ) : (
-          /* RESULTS */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {providers.map((prov) => (
               <ProviderCard
