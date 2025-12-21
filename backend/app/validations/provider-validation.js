@@ -64,8 +64,7 @@ export const providerUpdateValidation = Joi.object({
   priceRange: Joi.string().allow("", null),
   contact: Joi.string()
   .trim()
-  .pattern(/^(\+?91)?[6-9][0-9]{9}$/)
-  .required(),
+  .pattern(/^(\+?91)?[6-9][0-9]{9}$/),
   image: Joi.string().allow("", null),
   availability: Joi.boolean(),
   approvedByAdmin: Joi.boolean(),

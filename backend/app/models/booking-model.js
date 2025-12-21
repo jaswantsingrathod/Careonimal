@@ -15,7 +15,7 @@ const bookingSchema = new mongoose.Schema(
     },
 
     petType: {
-      type: String,
+      type: [String],
       required: true,
       trim: true,
     },

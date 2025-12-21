@@ -2,7 +2,10 @@ import Provider from "../models/provider-models.js";
 import User from "../models/user-model.js";
 import { sendMail } from "../../utils/sendMail.js";
 const ProviderController = {};
-import { providerValidation, providerUpdateValidation } from "../validations/provider-validation.js";
+import {
+  providerValidation,
+  providerUpdateValidation,
+} from "../validations/provider-validation.js";
 
 ProviderController.create = async (req, res) => {
   try {
@@ -25,12 +28,12 @@ ProviderController.create = async (req, res) => {
     const provider = new Provider({
       ...value,
       user: req.userId, // attach user ID from token
-      image: imageUrl
+      image: imageUrl,
     });
     await provider.save();
-     await User.findByIdAndUpdate(provider.user, { role: "provider" });
+    await User.findByIdAndUpdate(provider.user, { role: "provider" });
 
-     const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId);
     //  Send confirmation mail
     await sendMail(
       user.email,
@@ -43,9 +46,10 @@ ProviderController.create = async (req, res) => {
       <p>Warm regards,<br>Careonimal Team</p>
       `
     );
-    res
-      .status(201)
-      .json({ message: "Provider registered successfully. Confirmation mail sent.", provider });
+    res.status(201).json({
+      message: "Provider registered successfully. Confirmation mail sent.",
+      provider,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -135,42 +139,52 @@ ProviderController.modify = async (req, res) => {
       { new: true }
     );
     if (!provider) {
-      return res.status(404).json({ error: "Provider not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Provider not found or unauthorized" });
     }
     if (req.file && req.file.path) {
       provider.image = req.file.path; // Update image if new file is uploaded
-    } 
+    }
     await provider.save();
-    res.status(200).json({ message: "Provider updated successfully", provider });
+    res
+      .status(200)
+      .json({ message: "Provider updated successfully", provider });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 ProviderController.remove = async (req, res) => {
-  try{
-    const id = req.params.id
+  try {
+    const id = req.params.id;
     const provider = await Provider.findByIdAndDelete(id); // only admin can delete provider accounts
-    if(!provider){
-      return res.status(404).json({error:  "Provider not found or unauthorized"});
+    if (!provider) {
+      return res
+        .status(404)
+        .json({ error: "Provider not found or unauthorized" });
     }
-     await User.findByIdAndUpdate(provider.user, { role: "user" });
-    res.status(200).json({message: "Provider deleted successfully"});
-  }catch(error){
+    await User.findByIdAndUpdate(provider.user, { role: "user" });
+    res.status(200).json({ message: "Provider deleted successfully" });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
-}
+};
 
 ProviderController.delete = async (req, res) => {
   try {
     // Find and delete provider by logged-in user ID
     const provider = await Provider.findOneAndDelete({ user: req.userId });
     if (!provider) {
-      return res.status(404).json({ error: "No provider profile found for this user" });
+      return res
+        .status(404)
+        .json({ error: "No provider profile found for this user" });
     }
     // Change role back to "user"
     await User.findByIdAndUpdate(req.userId, { role: "user" });
-    res.status(200).json({ message: "Your provider profile has been deleted successfully" });
+    res
+      .status(200)
+      .json({ message: "Your provider profile has been deleted successfully" });
   } catch (error) {
     console.error("Error deleting provider profile:", error);
     res.status(500).json({ error: error.message });
@@ -183,6 +197,9 @@ ProviderController.nearby = async (req, res) => {
     const lngParam = req.query.lng || req.query.long || req.query.longitude;
     const radius = parseFloat(req.query.radius) || 15; // km
 
+    const serviceType = req.query.serviceType; // vet / groomer / boarding
+    const petType = req.query.petType; // dog / cat / etc
+
     const userLat = parseFloat(latParam);
     const userLong = parseFloat(lngParam);
 
@@ -192,11 +209,29 @@ ProviderController.nearby = async (req, res) => {
       });
     }
 
-    // Fetch only approved providers
-    const providers = await Provider.find({ approvedByAdmin: true }).lean();
+    const query = {
+      approvedByAdmin: true,
+    };
 
-    const R = 6371; // Earth radius in km
+    if (serviceType) {
+      query.serviceType = serviceType;
+    }
 
+    if (typeof petType === "string" && petType.trim().length > 0) {
+      query.servicesOffered = {
+        $elemMatch: {
+          petType: {
+            $regex: `^${petType.trim()}$`,
+            $options: "i",
+          },
+        },
+      };
+    }
+
+    // Fetch only matching providers
+    const providers = await Provider.find(query).lean();
+
+    const R = 6371;
     const toRad = (v) => (v * Math.PI) / 180;
 
     const calcDistanceKm = (lat1, lon1, lat2, lon2) => {
@@ -205,9 +240,7 @@ ProviderController.nearby = async (req, res) => {
 
       const a =
         Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLon / 2) ** 2;
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
 
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
@@ -224,7 +257,7 @@ ProviderController.nearby = async (req, res) => {
 
         return {
           ...prov,
-          distance: Number(distance.toFixed(2)), // in km
+          distance: Number(distance.toFixed(2)),
         };
       })
       .filter((p) => p && p.distance <= radius)
@@ -240,7 +273,5 @@ ProviderController.nearby = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 export default ProviderController;
