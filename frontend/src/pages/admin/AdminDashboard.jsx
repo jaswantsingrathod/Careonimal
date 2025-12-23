@@ -28,7 +28,7 @@ import {
 export default function AdminDasboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { users, loading, error, providers } = useSelector(
+  const { users, loading, error, providers = [] } = useSelector(
     (state) => state.admin
   );
   const { user, handleLogout } = useContext(UserContext);
