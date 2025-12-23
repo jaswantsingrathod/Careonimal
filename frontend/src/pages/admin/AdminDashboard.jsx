@@ -45,7 +45,7 @@ export default function AdminDasboard() {
 
   const visibleUsers = users?.filter((ele) => ele._id !== user?._id) ?? [];
   const totalUsers = visibleUsers.filter((ele) => ele.role === "user").length;
-  const totalProviders = providers.length;
+  // const totalProviders = providers.length;
 
   if (!user) return <p>Loading...</p>;
 
@@ -185,7 +185,7 @@ export default function AdminDasboard() {
                     </CardTitle>
                     <CardContent>
                       <div className="text-2xl font-bold text-center">
-                        {totalProviders}
+                        {providers.length}
                       </div>
                     </CardContent>
                   </CardHeader>
