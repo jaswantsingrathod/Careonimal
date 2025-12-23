@@ -5,15 +5,16 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 export const fetchUsers = createAsyncThunk(
   "admin/fetchUsers",
-  async (undefined, { rejectWithValue }) => {
+  async ({ page = 1, limit = 5, search = "" } = {}, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/users`, {
-        headers: { Authorization: localStorage.getItem("token") },
-      });
-      // console.log("users-s", res.data);
+      const res = await axios.get(
+        `/users?page=${page}&limit=${limit}&role=user&search=${search}`,
+        {
+          headers: { Authorization: localStorage.getItem("token") },
+        }
+      );
       return res.data;
     } catch (err) {
-      console.log("error", err);
       return rejectWithValue(
         err?.response?.data?.error || "Failed to fetch users"
       );
@@ -32,7 +33,7 @@ export const deleteUser = createAsyncThunk(
         },
       });
       console.log("User deleted:", res.data);
-      return res.data; 
+      return res.data;
     } catch (err) {
       console.error("Delete user error:", err);
       return rejectWithValue(
@@ -60,15 +61,24 @@ export const fetchSingleUser = createAsyncThunk(
 
 export const fetchProvider = createAsyncThunk(
   "admin/fetchProvider",
-  async (undefined, { rejectWithValue }) => {
+  async ({ page = 1, limit = 5, search = "" }, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/providers`, {
-        headers: { Authorization: localStorage.getItem("token") },
+      const res = await axios.get("/providers", {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+        params: {
+          page,
+          limit,
+          search,
+        },
       });
+
       return res.data;
     } catch (err) {
-      console.log(err.response.data.error);
-      return rejectWithValue(err.response.data.error);
+      return rejectWithValue(
+        err?.response?.data?.error || "Failed to fetch providers"
+      );
     }
   }
 );
@@ -77,7 +87,7 @@ export const fetchSingleProvider = createAsyncThunk(
   "admin/fetchSingleProvider",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/providers/${id}`)
+      const res = await axios.get(`/providers/${id}`);
       console.log(res.data);
       return res.data;
     } catch (err) {
@@ -109,7 +119,6 @@ export const approveProvider = createAsyncThunk(
   }
 );
 
-
 const normalizeUsers = (payload) => {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.users)) return payload.users;
@@ -123,6 +132,7 @@ const adminSlice = createSlice({
   name: "admin",
   initialState: {
     users: [],
+    pagination: null,
     providers: [],
     loading: false,
     error: null,
@@ -148,7 +158,8 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.users = normalizeUsers(action.payload); // always an array
+        state.users = normalizeUsers(action.payload);
+        state.pagination = action.payload?.pagination || null;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
@@ -193,9 +204,9 @@ const adminSlice = createSlice({
       })
       .addCase(fetchProvider.fulfilled, (state, action) => {
         state.loading = false;
-        state.providers = Array.isArray(action.payload)
-          ? action.payload
-          : action.payload?.providers ?? [];
+        state.providers =  action.payload.data;
+        state.pagination = action.payload?.pagination || null;
+
       })
       .addCase(fetchProvider.rejected, (state, action) => {
         state.loading = false;

@@ -61,8 +61,8 @@ export default function Navbar() {
               />
 
               <div className="leading-none">
-                <span className="text-lg font-semibold text-orange-600">
-                  Careonimal
+                <span className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                  𝐂𝐚𝐫𝐞𝐨𝐧𝐢𝐦𝐚𝐥
                 </span>
               </div>
             </Link>
@@ -75,6 +75,7 @@ export default function Navbar() {
                 <NavItem to="/">Home</NavItem>
                 <NavItem to="/contact">Contact</NavItem>
                 <NavItem to="/about">About Us</NavItem>
+                <NavItem to="/services">Services</NavItem>
              </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -188,6 +189,9 @@ export default function Navbar() {
                     </Link>
                     <Link to="/about" onClick={() => setOpen(false)}>
                       About
+                    </Link>
+                    <Link to="/services" onClick={() => setOpen(false)}>
+                    Services
                     </Link>
 
                     {user?.role !== "provider" && user?.role !== "admin" && (

@@ -169,7 +169,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
-            Find the best <span className="text-orange-600">pet care</span> near you
+            Find the best <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">pet care</span> near you
           </h1>
 
           <p className="text-neutral-600 text-sm max-w-xl">

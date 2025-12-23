@@ -20,6 +20,7 @@ import PublicProviderProfile from "./pages/PublicProviderProfile";
 import ScrollToTop from "./pages/ScrollToTop";
 import ProviderBookings from "./pages/providers/ProviderBookings";
 import ProviderSubscriptionPage from "./pages/providers/ProviderSubscriptionPage";
+import Services from "./pages/services";
 
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
@@ -72,6 +73,7 @@ function App() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/provider" element={<ProviderForm />} />
           <Route path="/provider/:id" element={<PublicProviderProfile />} />
+          <Route path="/services" element={<Services/>}/>
           <Route
             path="/provider/subscription"
             element={<ProviderSubscriptionPage />}

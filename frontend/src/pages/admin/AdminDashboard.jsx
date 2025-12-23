@@ -9,17 +9,6 @@ import {
 } from "../../slices/admin-slice";
 import { Users, PawPrint, Eye, Trash, Book, LogOut } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import UserContext from "../../context/User-Context";
 import { useNavigate } from "react-router-dom";
@@ -33,7 +22,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog";
 
 export default function AdminDasboard() {
@@ -46,7 +35,7 @@ export default function AdminDasboard() {
 
   useEffect(() => {
     dispatch(fetchUsers());
-    dispatch(fetchProvider());
+    dispatch(fetchProvider({ page: 1, limit: 100 }));
   }, [dispatch]);
 
   const handleRefresh = () => {
@@ -54,30 +43,9 @@ export default function AdminDasboard() {
     dispatch(fetchProvider());
   };
 
-  const handleDelete = (id) => {
-    dispatch(deleteUser(id));
-  };
-
-  const handleView = (record) => {
-    if (record.role === "provider") {
-      const provider = providers.find((ele) => ele.user?._id === record._id);
-      if (!provider) {
-        alert("This provider has not completed their provider profile yet.");
-        return;
-      }
-      dispatch(setSelectedProvider(provider));
-      navigate(`/admin/${provider._id}/provider`);
-    } else {
-      dispatch(fetchSingleUser(record._id));
-      navigate(`/admin/user/${record._id}`);
-    }
-  };
-
   const visibleUsers = users?.filter((ele) => ele._id !== user?._id) ?? [];
   const totalUsers = visibleUsers.filter((ele) => ele.role === "user").length;
-  const totalProviders = visibleUsers.filter(
-    (ele) => ele.role === "provider"
-  ).length;
+  const totalProviders = providers.length;
 
   if (!user) return <p>Loading...</p>;
 
@@ -134,12 +102,7 @@ export default function AdminDasboard() {
 
                 <div className="mt-2 border-t border-slate-100 pt-2">
                   <Dialog>
-                    <DialogTrigger asChild>
-                      {/* <button className="flex items-center gap-3 w-full text-sm px-3 py-2 rounded-md text-red-600 hover:bg-slate-50">
-                        <LogOut />
-                        <span>Logout</span>
-                      </button> */}
-                    </DialogTrigger>
+                    <DialogTrigger asChild></DialogTrigger>
 
                     <DialogContent className="max-w-sm">
                       <DialogHeader>
@@ -243,107 +206,6 @@ export default function AdminDasboard() {
                 </CardHeader>
               </Card>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Users</CardTitle>
-              </CardHeader>
-
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-black">
-                        <th className="py-2">Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        {user?.role == "admin" && <th>Action</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {!loading && visibleUsers?.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="py-6 text-center text-gray-500"
-                          >
-                            No users found
-                          </td>
-                        </tr>
-                      )}
-
-                      {visibleUsers?.map((ele) => (
-                        <tr key={ele._id} className="border-t">
-                          <td className="py-3">{ele.username}</td>
-                          <td>{ele.email}</td>
-                          <td>{ele.role}</td>
-                          <td>
-                            {ele.createdAt
-                              ? new Date(ele.createdAt).toLocaleDateString()
-                              : "—"}
-                          </td>
-                          <td className="px-4 py-2 border text-center">
-                            <button
-                              className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
-                              onClick={() => handleView(ele)}
-                            >
-                              <Eye />
-                            </button>
-
-                            {user.role === "admin" && user._id !== ele._id && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <button className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition">
-                                    <Trash />
-                                  </button>
-                                </AlertDialogTrigger>
-
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Are you sure?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This action cannot be undone. This will
-                                      permanently delete the user.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancel
-                                    </AlertDialogCancel>
-
-                                    <AlertDialogAction
-                                      onClick={() => handleDelete(ele._id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-
-                      {loading && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="py-6 text-center text-gray-400"
-                          >
-                            Loading...
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </main>
       </div>

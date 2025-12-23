@@ -37,7 +37,7 @@ export default function Contact() {
             </span>
             <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight text-neutral-900">
               Contact{" "}
-              <span className="text-orange-600 inline-block">Careonimal</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Careonimal</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-neutral-600 max-w-xl mx-auto">
               Questions, feedback, or a little help with a booking — just send

@@ -268,18 +268,6 @@ export default function ProviderProfile() {
                   </DialogContent>
                 </Dialog>
 
-                <div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start gap-2 text-xs"
-                    onClick={() => navigate(`/admin/providers/${ele._id}/bookings`)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    View bookings
-                  </Button>
-                </div>
-
                 <div className="mt-3 text-[12px] text-slate-500 border-t border-slate-100 pt-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px]">Provider ID</span>

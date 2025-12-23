@@ -1,18 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers, deleteUser, fetchSingleUser } from "../../slices/admin-slice";
+import {
+  fetchUsers,
+  deleteUser,
+  fetchSingleUser,
+} from "../../slices/admin-slice";
 import { Eye, Trash, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../components/Pagination";
 
-// shadcn UI
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// shadcn Table
 import {
   Table,
   TableBody,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -31,29 +33,32 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function UsersList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { users = [], loading } = useSelector((state) => state.admin);
+  const {
+    users = [],
+    loading,
+    pagination,
+  } = useSelector((state) => state.admin);
+
+  const [page, setPage] = useState(1);
+  const limit = 5;
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    dispatch(fetchUsers({ page, limit, search }));
+  }, [dispatch, page, search]);
 
-  // delete confirmed from Dialog
   const handleDelete = (id) => {
     dispatch(deleteUser(id))
       .then(() => {
         toast.success("User deleted");
-        dispatch(fetchUsers());
+        dispatch(fetchUsers({ page, limit }));
       })
-      .catch((err) => {
-        console.error("delete failed", err);
-        toast.error(err?.message || "Failed to delete user");
-      });
+      .catch(() => toast.error("Failed to delete user"));
   };
 
   const handleView = (ele) => {
@@ -61,108 +66,150 @@ export default function UsersList() {
     navigate(`/admin/user/${ele._id}`);
   };
 
-  // only plain users
-  const filteredUsers = (users || []).filter((ele) => ele.role === "user");
+  const filteredUsers = users;
 
   return (
-    <Card className="w-[90%] fixed left-[65px] z-20 shadow-sm rounded-2xl border border-slate-200">
-      <CardHeader>
-        <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-xs"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Go back
-            </Button>
-        <CardTitle className="text-lg font-bold text-slate-800 text-center">Users</CardTitle>
-      </CardHeader>
+    <div className="px-3 py-4 sm:px-6 sm:py-6">
+      <Card className="rounded-2xl border border-slate-200 shadow-sm">
+        {/* HEADER */}
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs w-fit"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go back
+          </Button>
 
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="text-sm text-slate-600">
-              <TableHead className="w-[120px]">Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="hidden md:table-cell">Role</TableHead>
-              <TableHead className="hidden lg:table-cell">Joined</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
+          <CardTitle className="text-lg font-bold text-slate-800">
+            Users
+          </CardTitle>
 
-          <TableBody>
-            {!loading && filteredUsers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="py-6 text-center text-slate-500">
-                  No users found.
-                </TableCell>
-              </TableRow>
-            )}
+          <div className="text-xs text-slate-500">
+            Total: {pagination?.total ?? 0}
+          </div>
+        </CardHeader>
 
-            {filteredUsers.map((ele) => (
-              <TableRow key={ele._id} className="hover:bg-slate-50 transition">
-                <TableCell className="font-medium">{ele.username}</TableCell>
+        {/* CONTENT */}
+        <CardContent className="flex flex-col h-[70vh]">
+          {/* TABLE SCROLL AREA */}
+          <div className="flex-1 overflow-x-auto overflow-y-auto rounded-lg border">
+            <Table className="text-sm sm:text-base">
+              <TableHeader className="sticky top-0 bg-slate-50 z-10">
+                <TableRow className="text-sm text-slate-600">
+                  <TableHead className="w-[160px]">Username</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Role
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Joined
+                  </TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
 
-                <TableCell className="text-sm text-slate-700">{ele.email}</TableCell>
+              <TableBody>
+                {!loading && filteredUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="py-10 text-center text-slate-500"
+                    >
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                )}
 
-                <TableCell className="hidden md:table-cell">{ele.role}</TableCell>
-
-                <TableCell className="hidden lg:table-cell">
-                  {ele.createdAt ? new Date(ele.createdAt).toLocaleDateString() : "—"}
-                </TableCell>
-
-                <TableCell className="flex items-center justify-end gap-2">
-                  <Button
-                    className="px-3 py-1 bg-blue text-black-500 rounded-md hover:bg-blue-300 transition"
-                    onClick={() => handleView(ele)}
-                    aria-label={`View ${ele.username}`}
+                {filteredUsers.map((ele) => (
+                  <TableRow
+                    key={ele._id}
+                    className="hover:bg-slate-50 transition"
                   >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                    <TableCell className="font-medium break-all sm:break-normal">
+                      {ele.username}
+                    </TableCell>
 
-                  {/* Delete with shadcn Dialog (uncontrolled) */}
-                  <Dialog>
-                    <DialogTrigger asChild>
+                    <TableCell className="text-sm text-slate-700 break-all sm:break-normal">
+                      {ele.email}
+                    </TableCell>
+
+                    <TableCell className="hidden md:table-cell capitalize">
+                      {ele.role}
+                    </TableCell>
+
+                    <TableCell className="hidden lg:table-cell">
+                      {ele.createdAt
+                        ? new Date(ele.createdAt).toLocaleDateString()
+                        : "—"}
+                    </TableCell>
+
+                    <TableCell className="flex flex-wrap justify-end gap-2">
                       <Button
-                        className="px-3 py-1 bg-blue text-red-500 rounded-md hover:bg-gray-700 transition"
-                        aria-label={`Delete ${ele.username}`}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(ele)}
                       >
-                        <Trash className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    </DialogTrigger>
 
-                    <DialogContent className="sm:max-w-sm">
-                      <DialogHeader>
-                        <DialogTitle>Delete user?</DialogTitle>
-                        <DialogDescription>
-                          Deleting <b>{ele.username}</b> will permanently remove this account.
-                        </DialogDescription>
-                      </DialogHeader>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="px-2"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
 
-                      <DialogFooter className="flex justify-end gap-2 pt-4">
-                        <DialogClose asChild>
-                          <Button variant="outline" size="sm">Cancel</Button>
-                        </DialogClose>
+                        <DialogContent className="sm:max-w-sm">
+                          <DialogHeader>
+                            <DialogTitle>Delete user?</DialogTitle>
+                            <DialogDescription>
+                              This will permanently remove{" "}
+                              <b>{ele.username}</b>.
+                            </DialogDescription>
+                          </DialogHeader>
 
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(ele._id)}
-                        >
-                          Delete
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+                          <DialogFooter className="gap-2 pt-4">
+                            <DialogClose asChild>
+                              <Button variant="outline" size="sm">
+                                Cancel
+                              </Button>
+                            </DialogClose>
 
-          <TableFooter />
-        </Table>
-      </CardContent>
-    </Card>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(ele._id)}
+                            >
+                              Delete
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* PAGINATION */}
+          <Pagination
+            page={page}
+            totalPages={Math.max(pagination?.totalPages || 1, 1)}
+            search={search}
+            onSearchChange={setSearch}
+            onPageChange={setPage}
+            className="mt-3 sm:mt-4"
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
