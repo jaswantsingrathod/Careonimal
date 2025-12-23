@@ -57,36 +57,53 @@ ProviderController.create = async (req, res) => {
 
 ProviderController.list = async (req, res) => {
   try {
-    const { city, serviceType, petType, businessName } = req.query;
+    const {
+      page = 1,
+      limit = 5,
+      search = "",
+    } = req.query;
 
-    // Role-based filter
     const filters = {};
+
+    // Only admin sees all
     if (req.role !== "admin") {
       filters.approvedByAdmin = true;
     }
 
-    // Apply search filters
-    if (city) filters.city = { $regex: city, $options: "i" };
-    if (serviceType) filters.serviceType = serviceType;
-    if (businessName)
-      filters.businessName = { $regex: businessName, $options: "i" };
-    if (petType)
-      filters["servicesOffered.petType"] = { $regex: petType, $options: "i" };
-
-    const providers = await Provider.find(filters)
-      .populate("user", "username email")
-      .select("-__v")
-      .sort({ createdAt: -1 });
-
-    if (!providers.length) {
-      return res.status(404).json({ message: "No providers found" });
+    if (search) {
+      filters.$or = [
+        { businessName: { $regex: search, $options: "i" } },
+        { serviceType: { $regex: search, $options: "i" } },
+        { "servicesOffered.petType": { $regex: search, $options: "i" } },
+      ];
     }
 
-    res.status(200).json(providers);
+    const skip = (page - 1) * limit;
+
+    const [providers, total] = await Promise.all([
+      Provider.find(filters)
+        .populate("user", "username email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+
+      Provider.countDocuments(filters),
+    ]);
+
+    res.status(200).json({
+      data: providers,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 ProviderController.approve = async (req, res) => {
   try {

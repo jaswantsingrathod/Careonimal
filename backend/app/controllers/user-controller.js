@@ -3,7 +3,10 @@ import jwt from "jsonwebtoken";
 import { sendMail } from "../../utils/sendMail.js";
 import User from "../models/user-model.js";
 const UserController = {};
-import { userLoginValidation, userRegisterValidation } from "../validations/user-validation.js";
+import {
+  userLoginValidation,
+  userRegisterValidation,
+} from "../validations/user-validation.js";
 import Provider from "../models/provider-models.js";
 
 UserController.register = async (req, res) => {
@@ -39,7 +42,7 @@ UserController.register = async (req, res) => {
       <p>Best wishes,<br>The Careonimal Team</p>
       `
     );
-    res.status(201).json("Registered successfully",user);
+    res.status(201).json("Registered successfully", user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -48,7 +51,9 @@ UserController.register = async (req, res) => {
 UserController.login = async (req, res) => {
   try {
     const body = req.body;
-    const { error, value } = userLoginValidation.validate(body, { abortEarly: false });
+    const { error, value } = userLoginValidation.validate(body, {
+      abortEarly: false,
+    });
     if (error) {
       return res.status(400).json({ error: error.message });
     }
@@ -78,7 +83,9 @@ UserController.login = async (req, res) => {
     if (user.role === "admin") {
       const allUsers = await User.find().sort({ createdAt: -1 });
       const tokenData = { userId: user._id, role: user.role };
-      const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+      const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+        expiresIn: "30d",
+      });
 
       return res.status(200).json({
         token,
@@ -114,7 +121,9 @@ UserController.login = async (req, res) => {
       // provider exists and is approved -> issue token and return provider as well
       if (provider.approvedByAdmin === true) {
         const tokenData = { userId: user._id, role: user.role };
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+          expiresIn: "30d",
+        });
 
         return res.status(200).json({
           token,
@@ -134,7 +143,9 @@ UserController.login = async (req, res) => {
 
     // --- Regular non-provider user: issue token as before ---
     const tokenData = { userId: user._id, role: user.role };
-    const token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: "30d" });
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
     return res.status(200).json({ token, user: userDetails });
   } catch (err) {
@@ -144,34 +155,74 @@ UserController.login = async (req, res) => {
 };
 
 UserController.list = async (req, res) => {
-  const body = req.body;
   try {
-    const users = await User.find(body);
-    res.status(200).json(users);
+    const {
+      page = 1,
+      limit = 5,
+      role,
+      search,
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    // role filter
+    if (role) {
+      filter.role = role;
+    }
+
+    // SEARCH (username or email)
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+
+      User.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      data: users,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-UserController.singleAccount = async (req,res) => {
-  try{
+UserController.singleAccount = async (req, res) => {
+  try {
     const id = req.params.id;
     const user = await User.findById(id);
-    if(!user){
-      return res.status(404).json({error: "User not found"});
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json(user);
-  }catch(err){
-    res.status(500).json({error: err.message});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 UserController.account = async (req, res) => {
   try {
     const userId = req.userId;
 
     // Find the user by ID, exclude password
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
 
     // If not found, handle gracefully
     if (!user) {
@@ -186,14 +237,14 @@ UserController.account = async (req, res) => {
 
 UserController.modify = async (req, res) => {
   try {
-    const id = req.params.id
-    const body = req.body
-    const updatedUser = await User.findByIdAndUpdate(id,body, {
-      new: true,         
-      runValidators: true 
+    const id = req.params.id;
+    const body = req.body;
+    const updatedUser = await User.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
     });
     if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json(updatedUser);
   } catch (err) {
@@ -203,13 +254,13 @@ UserController.modify = async (req, res) => {
 
 UserController.remove = async (req, res) => {
   try {
-    const id = req.params.id
+    const id = req.params.id;
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    if(deletedUser.role == "provider"){
-      await Provider.findOneAndDelete({user: deletedUser._id})
+    if (deletedUser.role == "provider") {
+      await Provider.findOneAndDelete({ user: deletedUser._id });
     }
     res.status(200).json("account deleted successfully");
   } catch (err) {
@@ -217,4 +268,4 @@ UserController.remove = async (req, res) => {
   }
 };
 
-export default UserController
+export default UserController;
