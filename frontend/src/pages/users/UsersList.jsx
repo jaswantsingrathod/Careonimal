@@ -52,6 +52,10 @@ export default function UsersList() {
     dispatch(fetchUsers({ page, limit, search }));
   }, [dispatch, page, search]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
   const handleDelete = (id) => {
     dispatch(deleteUser(id))
       .then(() => {
@@ -87,9 +91,7 @@ export default function UsersList() {
             Users
           </CardTitle>
 
-          <div className="text-xs text-slate-500">
-            Total: {pagination?.total ?? 0}
-          </div>
+          <div className="text-xs text-slate-500"></div>
         </CardHeader>
 
         {/* CONTENT */}
@@ -101,12 +103,8 @@ export default function UsersList() {
                 <TableRow className="text-sm text-slate-600">
                   <TableHead className="w-[160px]">Username</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Role
-                  </TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Joined
-                  </TableHead>
+                  <TableHead className="hidden md:table-cell">Role</TableHead>
+                  <TableHead className="hidden lg:table-cell">Joined</TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -170,8 +168,8 @@ export default function UsersList() {
                           <DialogHeader>
                             <DialogTitle>Delete user?</DialogTitle>
                             <DialogDescription>
-                              This will permanently remove{" "}
-                              <b>{ele.username}</b>.
+                              This will permanently remove <b>{ele.username}</b>
+                              .
                             </DialogDescription>
                           </DialogHeader>
 
@@ -208,6 +206,12 @@ export default function UsersList() {
             onPageChange={setPage}
             className="mt-3 sm:mt-4"
           />
+
+          {/* <Pagination
+            page={page}
+            totalPages={Math.max(pagination?.totalPages || 1, 1)}
+            onPageChange={setPage}
+          /> */}
         </CardContent>
       </Card>
     </div>

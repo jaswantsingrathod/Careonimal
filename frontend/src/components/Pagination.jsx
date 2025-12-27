@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function Pagination({
@@ -7,26 +8,33 @@ export default function Pagination({
   onSearchChange,
   onPageChange,
 }) {
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onPageChange(1);             
+      onSearchChange(localSearch);
+    }, 600); 
+
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
   if (!totalPages) return null;
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mt-6">
       
-      {/* 🔍 SEARCH */}
       <input
         type="text"
-        value={search}
-        onChange={(e) => {
-          onPageChange(1); // reset page on search
-          onSearchChange(e.target.value);
-        }}
+        value={localSearch}
+        onChange={(e) => setLocalSearch(e.target.value)}
         placeholder="Search..."
         className="w-full sm:w-64 px-3 py-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-orange-400"
       />
 
-      {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2">
+        <div className="flex justify-center items-center gap-2 flex-wrap">
           <Button
             size="sm"
             variant="outline"

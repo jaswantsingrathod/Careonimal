@@ -35,7 +35,7 @@ export default function ProviderList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { providers = [], loading, pagination } = useSelector(
+  const { providers, loading, pagination } = useSelector(
     (state) => state.admin
   );
 

@@ -77,7 +77,7 @@ export default function Login() {
 
   const demo = (role) => {
     const creds = {
-      admin: { email: "admin@test.com", password: "admin123" },
+      admin: { email: "admin@gmail.com", password: "Admin@123" },
       provider: { email: "provider@test.com", password: "provider" },
       user: { email: "user@test.com", password: "User@123" },
     }[role];
@@ -122,7 +122,7 @@ export default function Login() {
 
           <div className="flex items-center justify-center gap-4 mb-4">
             {["admin", "provider", "user"].map((role) => (
-              <button key={role} onClick={() => demo(role.toLowerCase())}>
+              <button key={role} onClick={() => demo(role)}>
                 {role}
               </button>
             ))}

@@ -67,13 +67,9 @@ export const fetchProvider = createAsyncThunk(
         headers: {
           Authorization: localStorage.getItem("token"),
         },
-        params: {
-          page,
-          limit,
-          search,
-        },
+        params: { page, limit, search },
       });
-
+      console.log("provider res ", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(
@@ -132,7 +128,8 @@ const adminSlice = createSlice({
   name: "admin",
   initialState: {
     users: [],
-    pagination: null,
+    usersPagination: null,
+    providersPagination: null,
     providers: [],
     loading: false,
     error: null,
@@ -159,7 +156,7 @@ const adminSlice = createSlice({
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.users = normalizeUsers(action.payload);
-        state.pagination = action.payload?.pagination || null;
+        state.usersPagination = action.payload?.pagination || null;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
@@ -204,9 +201,8 @@ const adminSlice = createSlice({
       })
       .addCase(fetchProvider.fulfilled, (state, action) => {
         state.loading = false;
-        state.providers =  action.payload.data;
-        state.pagination = action.payload?.pagination || null;
-
+        state.providers = action.payload.data;
+        state.providersPagination = action.payload?.pagination || null;
       })
       .addCase(fetchProvider.rejected, (state, action) => {
         state.loading = false;
@@ -254,3 +250,4 @@ const adminSlice = createSlice({
 
 export const { clearAdminError, setSelectedProvider } = adminSlice.actions;
 export default adminSlice.reducer;
+
