@@ -57,16 +57,12 @@ ProviderController.create = async (req, res) => {
 
 ProviderController.list = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 5,
-      search = "",
-    } = req.query;
+    const { page = 1, limit = 5, search = "" } = req.query;
+    const role = req.user?.role;
 
     const filters = {};
 
-    // Only admin sees all
-    if (req.role !== "admin") {
+    if (role !== "admin") {
       filters.approvedByAdmin = true;
     }
 
@@ -74,7 +70,6 @@ ProviderController.list = async (req, res) => {
       filters.$or = [
         { businessName: { $regex: search, $options: "i" } },
         { serviceType: { $regex: search, $options: "i" } },
-        { "servicesOffered.petType": { $regex: search, $options: "i" } },
       ];
     }
 
@@ -84,13 +79,12 @@ ProviderController.list = async (req, res) => {
       Provider.find(filters)
         .populate("user", "username email")
         .sort({ createdAt: -1 })
-        .skip(skip)
+        .skip(Number(skip))
         .limit(Number(limit)),
-
       Provider.countDocuments(filters),
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       data: providers,
       pagination: {
         total,
@@ -100,10 +94,10 @@ ProviderController.list = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Provider list error:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
-
 
 ProviderController.approve = async (req, res) => {
   try {

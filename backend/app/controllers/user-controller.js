@@ -156,23 +156,17 @@ UserController.login = async (req, res) => {
 
 UserController.list = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 5,
-      role,
-      search,
-    } = req.query;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 5, 1);
+    const search = req.query.search?.trim();
 
     const skip = (page - 1) * limit;
 
-    const filter = {};
+    //  only users
+    const filter = {
+      role: "user",
+    };
 
-    // role filter
-    if (role) {
-      filter.role = role;
-    }
-
-    // SEARCH (username or email)
     if (search) {
       filter.$or = [
         { username: { $regex: search, $options: "i" } },
@@ -185,22 +179,23 @@ UserController.list = async (req, res) => {
         .select("-password")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(Number(limit)),
+        .limit(limit),
 
       User.countDocuments(filter),
     ]);
 
     res.status(200).json({
-      data: users,
+      users, 
       pagination: {
         total,
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         totalPages: Math.ceil(total / limit),
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("User list error:", err);
+    res.status(500).json({ error: "Failed to fetch users" });
   }
 };
 
