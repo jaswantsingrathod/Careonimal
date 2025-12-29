@@ -47,7 +47,6 @@ export default function Contact() {
 
           {/* Main card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start rounded-3xl border border-orange-100 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.12)] p-5 sm:p-8">
-            {/* LEFT: FORM */}
             <div className="border-b md:border-b-0 md:border-r border-orange-100 pb-6 md:pb-0 md:pr-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -215,7 +214,6 @@ export default function Contact() {
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

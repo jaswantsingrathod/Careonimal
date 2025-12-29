@@ -54,7 +54,7 @@ export default function ProviderBookings() {
 
   const handleStatusChange = async (booking, newStatus) => {
     const payload = { id: booking._id, bookingStatus: newStatus };
-    console.log("Updating booking status with payload:", payload);
+    // console.log("Updating booking status with payload:", payload);
     if (!confirm(`Are you sure you want to set this booking to "${newStatus}"?`)) return;
     try {
       await dispatch(updateBookingStatus(payload)).unwrap();

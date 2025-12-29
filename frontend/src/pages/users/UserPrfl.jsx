@@ -4,10 +4,8 @@ import UserContext from "../../context/User-Context";
 import axios from "../../config/axios";
 import { toast } from "react-toastify";
 
-// icons
 import { User, Mail, Phone, ShieldCheck, Edit2 } from "lucide-react";
 
-// shadcn components
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,7 +124,6 @@ export default function UserPrfl() {
           </Button>
         </div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
 
           {/* PERSONAL */}
@@ -166,7 +163,7 @@ export default function UserPrfl() {
           </Card>
         </div>
 
-        {/* EDIT MODAL */}
+        {/* EDIT  */}
         <Dialog open={state.openEdit} onOpenChange={(o) => !o && dispatch({ type: "CLOSE_EDIT" })}>
           <DialogContent className="max-w-md w-[95%] sm:w-full">
             <DialogHeader>

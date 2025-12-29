@@ -39,7 +39,6 @@ export default function ProviderProfile() {
   );
 
   useEffect(() => {
-    // fetch providers list (keeps selectedProvider up-to-date)
     dispatch(fetchProvider());
   }, [dispatch]);
 
@@ -58,7 +57,6 @@ export default function ProviderProfile() {
 
   const handleApprove = async (id) => {
     dispatch(approveProvider(id));
-    // re-fetch to refresh status
     dispatch(fetchProvider());
   };
 
@@ -86,10 +84,8 @@ export default function ProviderProfile() {
   }
 
   return (
-    // center everything vertically & horizontally and limit width so content looks centered on large screens
     <div className="min-h-screen flex items-center justify-center  py-10 px-4">
       <div className="w-full max-w-6xl">
-        {/* Top controls */}
         <div className="w-[53%] flex items-center justify-between mb-6">
           <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -100,9 +96,7 @@ export default function ProviderProfile() {
             </div>
         </div>
 
-        {/* Main grid: left profile | center details | right actions */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-          {/* LEFT: profile card (col-span 3 on md) */}
           <div className="md:col-span-3 col-span-1">
             <Card className="rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between h-full">
               <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-4">
@@ -156,7 +150,6 @@ export default function ProviderProfile() {
             </Card>
           </div>
 
-          {/* CENTER: main details & services (col-span 6 on md) */}
           <div className="md:col-span-6 col-span-1">
             <div className="space-y-4">
               <Card className="rounded-2xl border border-slate-200 shadow-sm">
@@ -214,7 +207,7 @@ export default function ProviderProfile() {
             </div>
           </div>
 
-          {/* RIGHT: action card (col-span 3 on md) */}
+          {/* action card */}
           <div className="md:col-span-3 col-span-1">
             <Card className="rounded-2xl border border-slate-200 shadow-sm sticky top-6">
               <CardHeader className="px-4 pt-4 pb-2">

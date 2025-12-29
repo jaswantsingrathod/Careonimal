@@ -1,7 +1,7 @@
 import axios from "../config/axios";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-/* ---------- THUNKS ---------- */
+// THUNKS 
 
 export const fetchUsers = createAsyncThunk(
   "admin/fetchUsers",
@@ -61,7 +61,7 @@ export const fetchSingleUser = createAsyncThunk(
 
 export const fetchProvider = createAsyncThunk(
   "admin/fetchProvider",
-  async ({ page = 1, limit = 5, search = "" }, { rejectWithValue }) => {
+  async ({ page = 1, limit = 5, search = "" } = {}, { rejectWithValue }) => {
     try {
       const res = await axios.get("/providers", {
         headers: {
@@ -69,7 +69,7 @@ export const fetchProvider = createAsyncThunk(
         },
         params: { page, limit, search },
       });
-      console.log("provider res ", res.data);
+      // console.log("provider res ", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(
@@ -83,11 +83,11 @@ export const fetchSingleProvider = createAsyncThunk(
   "admin/fetchSingleProvider",
   async (id, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/providers/${id}`);
-      console.log(res.data);
+      const res = await axios.get(`/providers/public/${id}`);
+      // console.log(res.data);
       return res.data;
     } catch (err) {
-      console.log(err.response.data.error);
+      // console.log(err.response.data.error);
       return rejectWithValue(err.response.data.error);
     }
   }
@@ -122,8 +122,7 @@ const normalizeUsers = (payload) => {
   return [];
 };
 
-/* ---------- SLICE ---------- */
-
+//  SLICE  
 const adminSlice = createSlice({
   name: "admin",
   initialState: {

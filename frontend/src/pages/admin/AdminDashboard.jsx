@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     error,
   } = useSelector((state) => state.admin);
 
-  /* ---------------- FETCH DATA ---------------- */
+  // FETCH DATA 
   useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchProvider({ page: 1, limit: 100 }));
@@ -61,8 +61,6 @@ export default function AdminDashboard() {
     dispatch(fetchUsers());
     dispatch(fetchProvider({ page: 1, limit: 100 }));
   };
-
-  /* ---------------- DERIVED DATA ---------------- */
 
   const totalUsers = usersPagination?.total ?? 0;
   const totalProviders = providersPagination?.total ?? 0;
@@ -178,7 +176,7 @@ export default function AdminDashboard() {
               const active = window.location.pathname === item.path;
               return (
                 <button
-                  key={item.path}
+                  key={`${item.label}-${item.path}`}
                   onClick={() => navigate(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition
               ${
@@ -208,7 +206,6 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="ml-[260px] min-h-screen p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
@@ -234,7 +231,7 @@ export default function AdminDashboard() {
             </Button>
           </div>
 
-          {/* Stats Bar (Smaller Cards) */}
+          {/* Stats Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <CompactStatsCard
               title="Total Users"
@@ -256,7 +253,6 @@ export default function AdminDashboard() {
               icon={Briefcase}
               color="bg-amber-500"
               onClick={() => navigate("/admin/providers/list")}
-              // alert={pendingProviders.length > 0}
             />
             <CompactStatsCard
               title="7d Growth"
@@ -364,7 +360,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* SERVICE BREAKDOWN */}
+            {/* SERVICE  */}
             <Card className="rounded-2xl border-slate-200 shadow-sm">
               <CardHeader className="p-5 pb-0">
                 <CardTitle className="text-sm font-black text-slate-900 border-l-4 border-blue-500 pl-3">

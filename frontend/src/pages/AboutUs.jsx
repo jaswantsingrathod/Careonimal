@@ -62,7 +62,7 @@ export default function AboutUs() {
         </div>
       </div>
 
-      {/* WHAT WE OFFER (Feature List) */}
+      {/* WHAT WE OFFER */}
       <div className="py-20 ">
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
           <div className="flex-1">

@@ -37,7 +37,7 @@ export const fetchNearbyProviders = createAsyncThunk(
   }
 );
 
-/* ---------------- INITIAL STATE ---------------- */
+// INITIAL STATE 
 const initialState = {
   providers: [],
   loading: false,
@@ -50,7 +50,7 @@ const initialState = {
   error: null,
 };
 
-/* ---------------- SLICE ---------------- */
+// SLICE
 const slice = createSlice({
   name: "nearby",
   initialState,

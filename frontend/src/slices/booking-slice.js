@@ -19,39 +19,49 @@ export const createBooking = createAsyncThunk(
 
 export const fetchBookingsForUser = createAsyncThunk(
   "booking/fetchBookingsForUser",
-  async (_, { rejectWithValue }) => {
+  async ({ status, search, page, limit }, { rejectWithValue }) => {
     try {
       const res = await axios.get("/bookings", {
-        headers: { Authorization: localStorage.getItem("token") },
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+        params: {
+          status,
+          search,
+          page,
+          limit,
+        },
       });
-      const data = res.data;
-      if (Array.isArray(data.bookings)) return data.bookings;
-      if (Array.isArray(data)) return data;
-      return data?.bookings ?? data?.data ?? [];
+      console.log("🟢 BOOKINGS API RESPONSE:", res.data);
+      return res.data;
     } catch (err) {
-      const message = err?.response?.data?.error || "Failed to fetch bookings";
-      console.error("fetchBookingsForUser error:", message);
-      return rejectWithValue(message);
+      return rejectWithValue(
+        err.response?.data?.error || "Failed to fetch bookings"
+      );
     }
   }
 );
 
 export const fetchBookingsForProvider = createAsyncThunk(
   "booking/fetchBookingsForProvider",
-  async (_, { rejectWithValue }) => {
+  async ({ status } = {}, { rejectWithValue }) => {
     try {
       const res = await axios.get("/bookings/provider", {
-        headers: { Authorization: localStorage.getItem("token") },
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+        params: status ? { status } : {},
       });
-      const data = res.data;
-      if (Array.isArray(data.bookings)) return data.bookings;
-      if (Array.isArray(data)) return data;
-      return data?.bookings ?? data?.data ?? [];
+
+      return Array.isArray(res.data) ? res.data : [];
     } catch (err) {
-      const message =
-        err?.response?.data?.error || "Failed to fetch provider bookings";
-      console.error("fetchBookingsForProvider error:", message);
-      return rejectWithValue(message);
+      if (err.response?.status === 403) {
+        // no active subscription → empty dashboard
+        return [];
+      }
+      return rejectWithValue(
+        err?.response?.data?.error || "Failed to fetch provider bookings"
+      );
     }
   }
 );
@@ -69,8 +79,8 @@ export const updateBookingStatus = createAsyncThunk(
       );
       return res.data;
     } catch (err) {
-      const message = err?.response?.data?.error || "Failed to update status";
-      console.error("updateBookingStatus error:", message);
+      const message = err?.response?.data.message;
+      console.log("updateBookingStatus error:", message);
       return rejectWithValue(message);
     }
   }
@@ -147,8 +157,14 @@ export const verifyRazorpayPayment = createAsyncThunk(
 const bookingSlice = createSlice({
   name: "booking",
   initialState: {
-    list: [],
-    current: null,
+    list: [], // filtered bookings (table)
+    stats: {
+      total: 0,
+      pending: 0,
+      confirmed: 0,
+      completed: 0,
+      cancelled: 0,
+    },
     loading: false,
     error: null,
   },
@@ -189,7 +205,14 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookingsForUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = Array.isArray(action.payload) ? action.payload : [];
+        state.list = action.payload.bookings || [];
+        state.stats = action.payload.stats || {
+          total: 0,
+          pending: 0,
+          confirmed: 0,
+          completed: 0,
+          cancelled: 0,
+        };
       })
       .addCase(fetchBookingsForUser.rejected, (state, action) => {
         state.loading = false;
@@ -204,7 +227,16 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchBookingsForProvider.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = Array.isArray(action.payload) ? action.payload : [];
+        const status = action.meta.arg?.status;
+        if (status === "pending") {
+          state.pending = action.payload;
+        } else if (status === "confirmed") {
+          state.upcoming = action.payload;
+        } else if (status === "completed") {
+          state.completed = action.payload;
+        } else {
+          state.list = action.payload;
+        }
       })
       .addCase(fetchBookingsForProvider.rejected, (state, action) => {
         state.loading = false;
@@ -219,12 +251,13 @@ const bookingSlice = createSlice({
       })
       .addCase(updateBookingStatus.fulfilled, (state, action) => {
         state.loading = false;
-        const updated = action.payload;
+        const updated = action.payload?.booking;
         if (updated && updated._id) {
           state.list = state.list.map((b) =>
             String(b._id) === String(updated._id) ? updated : b
           );
         }
+        state.error = null;
       })
       .addCase(updateBookingStatus.rejected, (state, action) => {
         state.loading = false;
@@ -259,15 +292,14 @@ const bookingSlice = createSlice({
       })
       .addCase(deleteBooking.fulfilled, (state) => {
         state.loading = false;
-        // after delete we re-fetch on UI; or remove from list if API returns deleted id
       })
       .addCase(deleteBooking.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to delete booking";
       });
 
-      // createRazorpayOrder
-      builder
+    // createRazorpayOrder
+    builder
       .addCase(createRazorpayOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -278,10 +310,10 @@ const bookingSlice = createSlice({
       .addCase(createRazorpayOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to start payment";
-      })
+      });
 
-      // verifyRazorpayPayment
-      builder
+    // verifyRazorpayPayment
+    builder
       .addCase(verifyRazorpayPayment.pending, (state) => {
         state.loading = true;
         state.error = null;

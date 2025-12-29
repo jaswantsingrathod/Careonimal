@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -14,7 +14,6 @@ import { toast } from "react-toastify";
 import { PawPrint, Star } from "lucide-react";
 
 import { BarChart } from "@mui/x-charts/BarChart";
-import { useTheme } from "@mui/material/styles";
 
 import { fetchProvider } from "../../slices/admin-slice.js";
 import {
@@ -25,7 +24,7 @@ import { fetchMyProviderReviews } from "../../slices/Review-slice.js";
 
 import SubscriptionCard from "./SubscriptionCard";
 
-/* -------------------- helpers -------------------- */
+// helpers
 const startOfDay = (d) => {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -34,39 +33,35 @@ const startOfDay = (d) => {
 const sameMonthYear = (d1, d2) =>
   d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
 
-/* -------------------- component -------------------- */
 export default function ProviderDashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const theme = useTheme();
 
-  // state for quick-action processing
-  const [processingId, setProcessingId] = useState(null);
+  const providers = useSelector((s) => s.admin?.providers ?? []);
+  const selectedProvider = useSelector((s) => s.admin?.selectedProvider);
+  const authUser = useSelector((s) => s.auth?.user ?? null);
 
-  // selectors
-  const providers = useSelector((s) => s.admin?.providers ?? [], shallowEqual);
-  const selectedProvider = useSelector(
-    (s) => s.admin?.selectedProvider ?? null,
-    shallowEqual
-  );
-  const bookings = useSelector((s) => s.booking?.list ?? [], shallowEqual);
-  const bookingsLoading = useSelector((s) => s.booking?.loading ?? false);
-  const authUser = useSelector((s) => s.auth?.user ?? null, shallowEqual);
-  const myReviews = useSelector((state) => state.review?.items ?? []);
+  const {
+    list: allBookings = [],
+    pending = [],
+    upcoming = [],
+    completed = [],
+  } = useSelector((s) => s.booking);
 
-  // resolve provider (if needed)
+  const myReviews = useSelector((s) => s.review?.items ?? []);
+
   const provider = useMemo(() => {
     if (selectedProvider && selectedProvider._id) return selectedProvider;
     if (!authUser) return null;
     return (
       providers.find((p) => {
         const provUser = p.user?._id ?? p.user;
-        return provUser && String(provUser) === String(authUser._id);
+        return String(provUser) === String(authUser._id);
       }) ?? null
     );
   }, [selectedProvider, providers, authUser]);
 
-  // initial loads
+  // initial loads 
   useEffect(() => {
     dispatch(fetchProvider());
     dispatch(fetchMyProviderReviews());
@@ -74,34 +69,22 @@ export default function ProviderDashboard() {
 
   useEffect(() => {
     dispatch(fetchBookingsForProvider());
+    dispatch(fetchBookingsForProvider({ status: "pending", limit: 6 }));
+    dispatch(fetchBookingsForProvider({ status: "confirmed", limit: 6 }));
+    dispatch(fetchBookingsForProvider({ status: "completed" }));
+    dispatch(updateBookingStatus());
   }, [dispatch, provider?._id]);
 
-  // normalize bookingStatus
-  const normalizedBookings = useMemo(
-    () =>
-      bookings.map((b) => ({
-        ...b,
-        bookingStatus: b.bookingStatus ?? b.status ?? "pending",
-      })),
-    [bookings]
+  const stats = useMemo(
+    () => ({
+      total: allBookings.length,
+      pending: pending.length,
+      confirmed: upcoming.length,
+      completed: completed.length,
+    }),
+    [allBookings, pending, upcoming, completed]
   );
 
-  // stats
-  const stats = useMemo(() => {
-    const total = normalizedBookings.length;
-    const completed = normalizedBookings.filter(
-      (b) => b.bookingStatus === "completed"
-    ).length;
-    const confirmed = normalizedBookings.filter(
-      (b) => b.bookingStatus === "confirmed"
-    ).length;
-    const pending = normalizedBookings.filter(
-      (b) => b.bookingStatus === "pending"
-    ).length;
-    return { total, completed, confirmed, pending };
-  }, [normalizedBookings]);
-
-  // chart data: last 7 days completed counts
   const chartData = useMemo(() => {
     const today = startOfDay(new Date());
     const days = Array.from({ length: 7 }).map((_, i) => {
@@ -117,82 +100,40 @@ export default function ProviderDashboard() {
       };
     });
 
-    normalizedBookings.forEach((b) => {
+    completed.forEach((b) => {
       if (!b.bookingDate) return;
       const bd = startOfDay(new Date(b.bookingDate));
       const idx = days.findIndex((x) => x.date.getTime() === bd.getTime());
-      if (idx >= 0 && b.bookingStatus === "completed") days[idx].count++;
+      if (idx >= 0) days[idx].count++;
     });
 
-    // MUI x-charts wants xAxis.data (labels) and series.data arrays of same length
-    const labels = days.map((d) => d.label);
-    const values = days.map((d) => d.count);
-    return { labels, values, days };
-  }, [normalizedBookings]);
+    return {
+      labels: days.map((d) => d.label),
+      values: days.map((d) => d.count),
+    };
+  }, [completed]);
 
-  // counts for today and month
+  // counts
   const counts = useMemo(() => {
     const now = new Date();
     const todayStart = startOfDay(now).getTime();
-    const todayCompleted = normalizedBookings.filter((b) => {
+
+    const todayCompleted = completed.filter((b) => {
       if (!b.bookingDate) return false;
-      const bd = new Date(b.bookingDate).getTime();
-      return bd >= todayStart && b.bookingStatus === "completed";
+      return new Date(b.bookingDate).getTime() >= todayStart;
     }).length;
 
-    const monthCompleted = normalizedBookings.filter((b) => {
-      if (!b.bookingDate) return false;
-      const bd = new Date(b.bookingDate);
-      return sameMonthYear(bd, now) && b.bookingStatus === "completed";
-    }).length;
+    const monthCompleted = completed.filter((b) =>
+      sameMonthYear(new Date(b.bookingDate), now)
+    ).length;
 
     return { todayCompleted, monthCompleted };
-  }, [normalizedBookings]);
+  }, [completed]);
 
-  // lists
-  const pendingList = normalizedBookings
-    .filter((b) => b.bookingStatus === "pending")
-    .slice(0, 6);
-  const upcomingList = normalizedBookings
-    .filter((b) => b.bookingStatus === "confirmed")
-    .slice(0, 6);
-
-  // navigation
+  // navigation 
   const goToBookings = (filterStatus) =>
     navigate("/provider/bookings", { state: { filterStatus } });
-
-  // small confirm helper with toast
-  const confirmWithToast = (message, processingText = "Processing...") => {
-    const ok = window.confirm(message);
-    if (ok) toast.info(processingText, { autoClose: 1200 });
-    else toast.info("Action cancelled", { autoClose: 800 });
-    return ok;
-  };
-
-  // Quick accept/decline with processing state + toast + refresh
-  const runQuickAction = async (bookingId, status, successMsg) => {
-    if (!confirmWithToast(`Are you sure?`, `${successMsg} — processing...`))
-      return;
-    setProcessingId(bookingId);
-    try {
-      await dispatch(updateBookingStatus({ id: bookingId, status })).unwrap();
-      toast.success(successMsg);
-      await dispatch(fetchBookingsForProvider());
-    } catch (err) {
-      console.error(err);
-      toast.error(
-        err?.response?.data?.message || err?.message || "Action failed"
-      );
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const handleQuickAccept = (b) =>
-    runQuickAction(b._id, "confirmed", "Accepted");
-  const handleQuickDecline = (b) =>
-    runQuickAction(b._id, "cancelled", "Declined");
-
+    
   return (
     <div className="min-h-screen px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
       <div className="max-w-7xl mx-auto mb-6">
@@ -354,12 +295,12 @@ export default function ProviderDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-56 flex flex-col gap-3 overflow-auto">
-                  {upcomingList.length === 0 ? (
+                  {upcoming.length === 0 ? (
                     <div className="text-sm text-slate-500 text-center">
                       No upcoming bookings
                     </div>
                   ) : (
-                    upcomingList.map((next) => (
+                    upcoming.map((next) => (
                       <div
                         key={next._id}
                         className="p-3 rounded-lg border bg-white w-full"
@@ -403,12 +344,12 @@ export default function ProviderDashboard() {
                       {
                         data: chartData.values,
                         label: "Completed",
-                        color: "#fb923c", // orange-400
+                        color: "#fb923c", 
                       },
                     ]}
                     height={220}
                     slotProps={{
-                      legend: { hidden: true }, // no warning + minimal UI
+                      legend: { hidden: true },
                     }}
                   />
                 </div>
@@ -429,7 +370,7 @@ export default function ProviderDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {normalizedBookings.slice(0, 6).map((b) => (
+                {allBookings.slice(0, 6).map((b) => (
                   <div
                     key={b._id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-white"

@@ -62,11 +62,11 @@ export default function Home() {
     setLocalRadius(reduxRadiusKm || 10);
   }, [reduxPetType, reduxServiceType, reduxRadiusKm]);
 
-  // ---------------- SEARCH HANDLER  --------------
+  //  SEARCH 
   const openConfirm = async (e) => {
     e?.preventDefault?.();
 
-    // Check permissions first
+    // Check permissions
     if (!("geolocation" in navigator)) {
       toast.error("Geolocation not supported by your browser.");
       return;
@@ -104,7 +104,7 @@ export default function Home() {
     dispatch(setConfirmOpen(true));
   };
 
-  /* ---------------- ALLOW LOCATION ---------------- */
+  // ALLOW LOCATION 
   const onModalAllow = (e) => {
     e?.preventDefault?.();
     dispatch(setConfirmOpen(false));
@@ -116,7 +116,6 @@ export default function Home() {
         const lng = pos.coords.longitude;
         dispatch(setUserCoords({ lat, lng }));
 
-        // Ensure Redux is updated (in case search didn't run via openConfirm path)
         dispatch(setPetType(localPetType));
         dispatch(setServiceType(localServiceType));
         dispatch(setRadiusKm(localRadius));
@@ -148,7 +147,7 @@ export default function Home() {
     toast.info("Location permission required to search nearby providers.");
   };
 
-  /* ---------------- OPEN PROFILE ---------------- */
+  // OPEN PROFILE 
   const openProfile = (prov) => {
     if (!isLoggedIn) {
       toast.error("Please login to view provider profile");
@@ -160,7 +159,6 @@ export default function Home() {
 
   return (
     <div className="w-full max-w-7xl mx-auto">
-      {/* HERO */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center p-8 lg:p-10">
         <div className="space-y-6">
           <div className="inline-flex items-center gap-3 rounded-full bg-orange-50 px-4 py-1 text-xs font-semibold text-orange-700 w-max shadow-sm">
@@ -315,4 +313,3 @@ export default function Home() {
     </div>
   );
 }
-``

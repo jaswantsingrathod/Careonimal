@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { fetchProvider } from "../slices/admin-slice.js";
+import { fetchSingleProvider } from "../slices/admin-slice.js";
 import { fetchAllReviews } from "../slices/Review-slice.js";
 
 import BookingModal from "../components/BookingModel";
@@ -24,30 +24,36 @@ export default function PublicProviderProfile() {
   const [selectedSvc, setSelectedSvc] = useState(null);
   const [activeTab, setActiveTab] = useState("services");
 
-  const { providers = [], loading } = useSelector((state) => state.admin);
+  const { selectedProvider: provider, loading } = useSelector(
+    (state) => state.admin
+  );
+
   const allReviews = useSelector((state) => state.review.all || []);
   const { current } = useSelector((state) => state.booking || {});
 
   useEffect(() => {
-    dispatch(fetchProvider());
-    dispatch(fetchAllReviews());
-  }, [dispatch]);
+    if (id) {
+      dispatch(fetchSingleProvider(id));
+      dispatch(fetchAllReviews());
+    }
+  }, [dispatch, id]);
 
-  const provider = providers.find((p) => String(p._id) === String(id));
-
+  // REVIEWS 
   const providerReviews =
     allReviews.filter((r) => {
-      const pid = typeof r.provider === "string" ? r.provider : r.provider?._id;
+      const pid =
+        typeof r.provider === "string" ? r.provider : r.provider?._id;
       return String(pid) === String(id);
     }) || [];
 
+  // BOOKING 
   useEffect(() => {
     if (current && current._id) {
       navigate(`/booking/${current._id}`);
     }
   }, [current, navigate]);
 
-  if (loading || !providers.length) {
+  if (loading) {
     return (
       <div className="flex justify-center p-10 text-gray-600">Loading...</div>
     );
@@ -78,7 +84,6 @@ export default function PublicProviderProfile() {
             <div className="text-white space-y-1">
               <h1 className="text-3xl font-bold">{provider.businessName}</h1>
 
-              {/* SERVICE TYPE BADGE */}
               <span
                 className="inline-block mt-1 px-3 py-1 rounded-full
                      bg-white/20 backdrop-blur
@@ -90,7 +95,6 @@ export default function PublicProviderProfile() {
               {/* AVERAGE RATING */}
               {provider.rating !== undefined && (
                 <div className="flex items-center gap-2 mt-2">
-                  {/* STARS */}
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -104,7 +108,6 @@ export default function PublicProviderProfile() {
                     ))}
                   </div>
 
-                  {/* NUMBER */}
                   <span className="text-sm font-semibold">
                     {provider.rating.toFixed(1)}
                   </span>
@@ -115,7 +118,6 @@ export default function PublicProviderProfile() {
         </div>
       </div>
 
-      {/*  TABS */}
       <div className="max-w-6xl mx-auto px-6 mt-6">
         <div className="flex gap-6 border-b">
           <button
@@ -155,9 +157,7 @@ export default function PublicProviderProfile() {
 
       {/*  MAIN CONTENT */}
       <div className="max-w-6xl mx-auto px-6 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT */}
         <div className="lg:col-span-2 space-y-6">
-          {/* SERVICES TAB */}
           {activeTab === "services" && (
             <Card>
               <CardHeader>
@@ -223,7 +223,7 @@ export default function PublicProviderProfile() {
             </Card>
           )}
 
-          {/* REVIEWS TAB */}
+          {/* REVIEWS  */}
           {activeTab === "reviews" && (
             <Card>
               <CardHeader>
@@ -269,7 +269,7 @@ export default function PublicProviderProfile() {
             </Card>
           )}
 
-          {/* ABOUT TAB */}
+          {/* ABOUT  */}
           {activeTab === "about" && (
             <Card>
               <CardHeader>
@@ -283,7 +283,7 @@ export default function PublicProviderProfile() {
                     "This provider offers trusted and professional pet care services with a focus on safety, comfort, and love for animals."}
                 </p>
 
-                {/* INFO GRID */}
+                {/* INFO  */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div className="border rounded-lg p-4 bg-slate-50">
                     <p className="text-gray-500 text-xs mb-1">Service Type</p>
@@ -383,7 +383,7 @@ export default function PublicProviderProfile() {
         </div>
       </div>
 
-      {/* BOOKING MODAL */}
+      {/* BOOKING  */}
       <BookingModal
         open={open}
         onOpenChange={(v) => {

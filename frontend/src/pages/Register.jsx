@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import Joi from "joi";
 import { toast } from "react-toastify";
 import { User, Mail, Lock, Phone, PawPrint, ArrowRight } from "lucide-react";
-import img from "@/assets/293.jpg";
+import img from "@/assets/login.png";
 
 export default function Register() {
   const { handleRegister, serverError, userDispatch } =
@@ -220,9 +220,7 @@ export default function Register() {
             </Button>
 
             <div className="text-center pt-2">
-              <Link to="/login" className="text-[10px] text-slate-400 hover:text-orange-600 font-bold">
-                Already have an account? <span className="text-orange-600">Log in</span>
-              </Link>
+                Already have an account? <Link className="hover:text-orange-600" to="/login">Log in</Link>
             </div>
 
           </form>

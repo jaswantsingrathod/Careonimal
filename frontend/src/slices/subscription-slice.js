@@ -11,7 +11,6 @@ export const fetchMySubscription = createAsyncThunk(
       return res.data;
     } catch (err) {
       if (err.response?.status === 404) {
-        // no subscription yet -> not an error, just null
         return null;
       }
       return rejectWithValue(

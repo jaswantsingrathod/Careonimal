@@ -44,7 +44,6 @@ export const fetchMyProviderReviews = createAsyncThunk(
       return res.data;
     } catch (err) {
       if (err.response?.status === 404) {
-        // "No reviews yet" from controller → treat as empty, not error
         return [];
       }
       return rejectWithValue(

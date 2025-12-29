@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../config/axios";
 
-// Thunk: create a new provider
+// Thunk
 export const createProvider = createAsyncThunk(
   "provider/createProvider",
   async (formData, { rejectWithValue }) => {

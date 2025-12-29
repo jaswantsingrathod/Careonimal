@@ -41,7 +41,7 @@ export default function UsersList() {
   const {
     users = [],
     loading,
-    pagination,
+    usersPagination,
   } = useSelector((state) => state.admin);
 
   const [page, setPage] = useState(1);
@@ -94,9 +94,8 @@ export default function UsersList() {
           <div className="text-xs text-slate-500"></div>
         </CardHeader>
 
-        {/* CONTENT */}
         <CardContent className="flex flex-col h-[70vh]">
-          {/* TABLE SCROLL AREA */}
+          {/* TABLE SCROLL  */}
           <div className="flex-1 overflow-x-auto overflow-y-auto rounded-lg border">
             <Table className="text-sm sm:text-base">
               <TableHeader className="sticky top-0 bg-slate-50 z-10">
@@ -200,18 +199,12 @@ export default function UsersList() {
           {/* PAGINATION */}
           <Pagination
             page={page}
-            totalPages={Math.max(pagination?.totalPages || 1, 1)}
+            totalPages={Math.max(usersPagination?.totalPages || 1, 1)}
             search={search}
             onSearchChange={setSearch}
             onPageChange={setPage}
             className="mt-3 sm:mt-4"
           />
-
-          {/* <Pagination
-            page={page}
-            totalPages={Math.max(pagination?.totalPages || 1, 1)}
-            onPageChange={setPage}
-          /> */}
         </CardContent>
       </Card>
     </div>

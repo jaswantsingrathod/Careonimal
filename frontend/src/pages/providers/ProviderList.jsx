@@ -35,7 +35,7 @@ export default function ProviderList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { providers, loading, pagination } = useSelector(
+  const { providers, loading, providersPagination } = useSelector(
     (state) => state.admin
   );
 
@@ -79,11 +79,8 @@ export default function ProviderList() {
           </CardTitle>
 
           <div className="text-xs text-slate-500">
-            Total: {pagination?.total ?? 0}
           </div>
         </CardHeader>
-
-        {/* CONTENT */}
         <CardContent className="flex flex-col h-[70vh]">
           {/* TABLE */}
           <div className="flex-1 overflow-x-auto overflow-y-auto rounded-lg border">
@@ -195,7 +192,7 @@ export default function ProviderList() {
           {/* PAGINATION */}
           <Pagination
             page={page}
-            totalPages={Math.max(pagination?.totalPages || 1, 1)}
+            totalPages={Math.max(providersPagination?.totalPages || 1, 1)}
             search={search}
             onSearchChange={setSearch}
             onPageChange={setPage}

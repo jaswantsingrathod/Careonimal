@@ -49,10 +49,10 @@ export default function Services() {
   ];
 
   const steps = [
-    { num: "01", title: "Search", desc: "Choose your service & location" },
+    { num: "01", title: "Search", desc: "Choose your service, pet type and location" },
     { num: "02", title: "Compare", desc: "Read reviews & check profiles" },
     { num: "03", title: "Book", desc: "Schedule instant appointments" },
-    { num: "04", title: "Relax", desc: "Get real-time updates & photos" },
+    { num: "04", title: "Relax", desc: "Get real-time updates" },
   ];
 
   return (
@@ -139,7 +139,7 @@ export default function Services() {
         </div>
       </section>
 
-      {/* ---------------- HOW IT WORKS ---------------- */}
+      {/*  HOW IT WORKS  */}
       <section className="py-20 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
@@ -169,7 +169,7 @@ export default function Services() {
         </div>
       </section>
 
-      {/* ---------------- TRUST ---------------- */}
+      {/*  TRUST  */}
       <section className="bg-slate-900 rounded-4xl py-20 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

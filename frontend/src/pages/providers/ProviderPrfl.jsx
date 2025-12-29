@@ -258,7 +258,6 @@ export default function ProvidersPrfl() {
 
   const addPetTypeHandler = () => dispatch(addPetType());
   const removePetTypeHandler = (idx) => dispatch(removePetType(idx));
-  const setPetTypeFieldHandler = (idx, value) => dispatch(setPetTypeField({ idx, value }));
   const addSubServiceHandler = (gIdx) => dispatch(addSubService(gIdx));
   const removeSubHandler = (gIdx, sIdx) => dispatch(removeSubService({ gIdx, sIdx }));
   const setSubFieldHandler = (gIdx, sIdx, field, value) =>
@@ -815,15 +814,6 @@ function InfoRow({ icon, label, value }) {
         <p className="font-medium">{label}</p>
         <p className="text-gray-600">{value || "Not provided"}</p>
       </div>
-    </div>
-  );
-}
-
-function StatBox({ label, value }) {
-  return (
-    <div className="p-4 bg-gray-50 rounded-xl shadow-sm">
-      <p className="text-xl font-semibold">{value}</p>
-      <p className="text-gray-500 text-sm">{label}</p>
     </div>
   );
 }

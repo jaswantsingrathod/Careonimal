@@ -183,13 +183,8 @@ export default function Login() {
             </Button>
 
             <div className="text-center pt-2">
-              <Link
-                to="/register"
-                className="text-[10px] text-slate-400 hover:text-orange-600 font-bold transition-colors"
-              >
                 Don't have an account?{" "}
-                <span className="text-orange-600">Register</span>
-              </Link>
+                <Link className="hover:text-orange-600"  to="/register">Register</Link>
             </div>
           </form>
         </div>

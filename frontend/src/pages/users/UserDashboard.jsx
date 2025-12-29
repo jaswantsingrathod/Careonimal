@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -17,7 +12,7 @@ import { toast } from "react-toastify";
 import {
   fetchBookingsForUser,
   cancelBooking,
-} from "../../slices/booking-slice";
+} from "../../slices/booking-slice.js";
 
 import ReviewModal from "../../components/ReviewModel";
 import { fetchAllReviews } from "../../slices/Review-slice.js";
@@ -26,7 +21,16 @@ export default function UserDashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { list = [] } = useSelector((state) => state.booking || {});
+  const { list = [], stats } = useSelector((state) => state.booking);
+  const {
+    total = 0,
+    pending = 0,
+    confirmed = 0,
+    completed = 0,
+    cancelled = 0,
+  } = stats || {};
+  console.log("stats", stats);
+
   const authUser = useSelector((state) => state.auth);
   const allReviews = useSelector((state) => state.review?.all ?? []);
 
@@ -37,50 +41,34 @@ export default function UserDashboard() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
-  // Fetch user's bookings
+  // Fetch user bookings
   useEffect(() => {
-    dispatch(fetchBookingsForUser());
+    dispatch(
+      fetchBookingsForUser({
+        status: statusFilter === "all" ? undefined : statusFilter,
+        search: q,
+        page: 1,
+        limit: 10,
+      })
+    );
     dispatch(fetchAllReviews());
-  }, [dispatch]);
+  }, [dispatch, statusFilter, q]);
 
-  const bookings = useMemo(
-    () =>
-      (list || []).map((b) => ({
-        ...b,
-        bookingStatus: b.bookingStatus ?? b.status ?? "pending",
-      })),
-    [list]
-  );
+  const bookings = list;
+  const visibleBookings = list;
 
   const hasReviewed = (bookingId) => {
     return allReviews.some(
-      (r) =>
-        r.booking === bookingId || // when backend returns just id
-        r.booking?._id === bookingId // when populated
+      (r) => r.booking === bookingId || r.booking?._id === bookingId
     );
   };
-
-  const stats = useMemo(() => {
-    const total = bookings.length;
-    const upcoming = bookings.filter((b) =>
-      ["pending", "confirmed"].includes(b.bookingStatus)
-    ).length;
-    const completed = bookings.filter(
-      (b) => b.bookingStatus === "completed"
-    ).length;
-    const cancelled = bookings.filter(
-      (b) => b.bookingStatus === "cancelled"
-    ).length;
-
-    return { total, upcoming, completed, cancelled };
-  }, [bookings]);
 
   const { upcomingList, pastList } = useMemo(() => {
     const now = new Date();
     const upcoming = [];
     const past = [];
 
-    bookings.forEach((b) => {
+    visibleBookings.forEach((b) => {
       const date = new Date(b.bookingDate);
       const status = b.bookingStatus;
 
@@ -92,51 +80,7 @@ export default function UserDashboard() {
     });
 
     return { upcomingList: upcoming, pastList: past };
-  }, [bookings]);
-
-  const filteredUpcoming = useMemo(() => {
-    let list = [...upcomingList];
-
-    if (statusFilter !== "all") {
-      list = list.filter((b) => b.bookingStatus === statusFilter);
-    }
-
-    if (q.trim()) {
-      const qq = q.toLowerCase();
-      list = list.filter((b) => {
-        const provider = b.provider?.businessName?.toLowerCase() || "";
-        const service = b.service?.toLowerCase() || "";
-        const pet = b.petType?.toLowerCase() || "";
-        return (
-          provider.includes(qq) || service.includes(qq) || pet.includes(qq)
-        );
-      });
-    }
-
-    return list;
-  }, [upcomingList, q, statusFilter]);
-
-  const filteredPast = useMemo(() => {
-    let list = [...pastList];
-
-    if (statusFilter !== "all") {
-      list = list.filter((b) => b.bookingStatus === statusFilter);
-    }
-
-    if (q.trim()) {
-      const qq = q.toLowerCase();
-      list = list.filter((b) => {
-        const provider = b.provider?.businessName?.toLowerCase() || "";
-        const service = b.service?.toLowerCase() || "";
-        const pet = b.petType?.toLowerCase() || "";
-        return (
-          provider.includes(qq) || service.includes(qq) || pet.includes(qq)
-        );
-      });
-    }
-
-    return list;
-  }, [pastList, q, statusFilter]);
+  }, [visibleBookings]);
 
   const handleCancel = async (bookingId) => {
     const ok = window.confirm("Are you sure you want to cancel this booking?");
@@ -145,7 +89,14 @@ export default function UserDashboard() {
     try {
       await dispatch(cancelBooking(bookingId)).unwrap();
       toast.success("Booking cancelled");
-      dispatch(fetchBookingsForUser());
+      dispatch(
+        fetchBookingsForUser({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          search: q,
+          page: 1,
+          limit: 10,
+        })
+      );
     } catch (err) {
       toast.error(err?.message || "Failed to cancel booking");
     }
@@ -213,28 +164,28 @@ export default function UserDashboard() {
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs uppercase text-orange-500">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-2xl font-bold">{total}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs uppercase text-amber-500">Upcoming</p>
-                <p className="text-2xl font-bold">{stats.upcoming}</p>
+                <p className="text-2xl font-bold">{pending + confirmed}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs uppercase text-emerald-500">Completed</p>
-                <p className="text-2xl font-bold">{stats.completed}</p>
+                <p className="text-2xl font-bold">{completed}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4">
                 <p className="text-xs uppercase text-rose-500">Cancelled</p>
-                <p className="text-2xl font-bold">{stats.cancelled}</p>
+                <p className="text-2xl font-bold">{cancelled}</p>
               </CardContent>
             </Card>
           </div>
@@ -268,7 +219,7 @@ export default function UserDashboard() {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-72">
-                {filteredPast.map((b) => (
+                {pastList.map((b) => (
                   <div
                     key={b._id}
                     className="p-3 border rounded-lg mb-2 bg-white"
@@ -323,7 +274,7 @@ export default function UserDashboard() {
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-72">
-                {filteredUpcoming.map((b) => (
+                {upcomingList.map((b) => (
                   <div
                     key={b._id}
                     className="p-3 border rounded-lg mb-2 bg-white"

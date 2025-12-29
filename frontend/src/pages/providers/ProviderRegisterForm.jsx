@@ -25,7 +25,7 @@ export default function ProviderForm() {
   const { loading } = useSelector((s) => s.provider || {});
   const [logoPreview, setLogoPreview] = useState(null);
 
-  // ---------------------- JOI SCHEMA -----------------
+  //  JOI SCHEMA 
   const providerSchema = Joi.object({
     serviceType: Joi.string().valid("boarding", "vet", "groomer").required(),
     businessName: Joi.string().trim().min(2).max(100).required(),
@@ -54,7 +54,7 @@ export default function ProviderForm() {
       ).min(1).required(),
   });
 
-  // ---------------------- VALIDATOR ----------------------
+  //  VALIDATOR 
   function validateWithJoi(values) {
     try {
       const { error } = providerSchema.validate(values, {
@@ -72,7 +72,7 @@ export default function ProviderForm() {
     } catch { return {}; }
   }
 
-  // ---------------------- FORM ----------------------
+  //  FORM 
   const formik = useFormik({
     validateOnChange: false,
     validateOnBlur: false,

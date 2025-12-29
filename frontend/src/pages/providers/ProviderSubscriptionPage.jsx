@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState} from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -46,6 +46,8 @@ const PLANS = [
 export default function ProviderSubscriptionPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const [processingPlan, setProcessingPlan] = useState(null);
 
   const subscription = useSelector(
     (s) => s.subscription?.data ?? null,
@@ -99,6 +101,7 @@ export default function ProviderSubscriptionPage() {
 
   const handleBuy = async (planType) => {
     try {
+      setProcessingPlan(planType);
       if (!window.Razorpay) {
         toast.error("Razorpay SDK not loaded");
         return;
@@ -136,7 +139,7 @@ export default function ProviderSubscriptionPage() {
           }
         },
         theme: {
-          color: "#fb923c", // orange-400
+          color: "#fb923c",
         },
       };
 
@@ -144,6 +147,8 @@ export default function ProviderSubscriptionPage() {
       rzp.open();
     } catch (err) {
       toast.error(err || "Failed to start payment");
+    }finally{
+      setProcessingPlan(null);
     }
   };
 
@@ -257,7 +262,8 @@ export default function ProviderSubscriptionPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {PLANS.map((plan) => {
               const isActiveCurrent = isCurrentPlan(plan.id);
-              const isProcessing = buying && !isActiveCurrent;
+              const isProcessing = processingPlan === plan.id;
+
 
               return (
                 <Card
