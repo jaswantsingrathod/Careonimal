@@ -265,40 +265,40 @@ providerSubscriptionController.verifyPayment = async (req, res) => {
       return res.status(400).json({ error: "Invalid plan type" });
     }
 
-    // Verify signature
+    // Verify Razorpay signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
+      .update(body)
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({ error: "Payment verification failed" });
     }
 
-    // Get provider from logged-in user
+    // Find provider
     const provider = await Provider.findOne({ user: req.userId });
     if (!provider) {
       return res.status(404).json({ error: "Provider profile not found" });
     }
 
-    // Extra safety: ensure no active subscription
     const existing = await Subscription.findOne({
       provider: provider._id,
       isActive: true,
     });
     if (existing) {
-      return res
-        .status(400)
-        .json({ error: "You already have an active subscription" });
+      return res.status(400).json({
+        error: "You already have an active subscription",
+      });
     }
 
     const plan = PLANS[planType];
 
     const startDate = new Date();
-    const endDate = new Date(startDate);
+    const endDate = new Date();
     endDate.setDate(startDate.getDate() + plan.duration);
 
+    // create subscription
     const subscription = new Subscription({
       provider: provider._id,
       planType,
@@ -311,14 +311,21 @@ providerSubscriptionController.verifyPayment = async (req, res) => {
 
     await subscription.save();
 
+    provider.subscription = subscription._id;
+    provider.subscriptionPlan = planType;
+    provider.subscriptionExpiresAt = endDate;
+
+    await provider.save();
+
     return res.status(201).json({
       message: "Subscription activated successfully",
       subscription,
     });
   } catch (err) {
-    console.error("Error verifying subscription payment:", err);
+    console.error("verifyPayment error:", err);
     return res.status(500).json({ error: "Failed to verify payment" });
   }
 };
+
 
 export default providerSubscriptionController;

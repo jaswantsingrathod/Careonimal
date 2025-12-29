@@ -54,11 +54,13 @@ app.get('/providers/subscriptions', authenticateUser, authorizeUser(["admin"]), 
 app.post("/providers/subscription/create-order",authenticateUser,authorizeUser(["provider"]),providerSubscriptionController.createOrder);
 app.post("/providers/subscription/verify-payment",authenticateUser,authorizeUser(["provider"]),providerSubscriptionController.verifyPayment)
 app.get('/providers/:id', authenticateUser, ProviderController.account)
+app.get("/providers/public/:id", ProviderController.account);
+
 
 // bookings
 app.post('/bookings/create', authenticateUser, authorizeUser(["user"]), BookingController.create);
 app.get('/bookings', authenticateUser, authorizeUser(["user", "admin"]), BookingController.userBookings)
-app.get('/bookings/provider', authenticateUser, authorizeUser(["provider"]),requireActiveSubscription ,BookingController.providerBookings)
+app.get('/bookings/provider', authenticateUser, authorizeUser(["provider"]) ,BookingController.providerBookings)
 app.put('/bookings/status/:id', authenticateUser, authorizeUser(["provider"]),requireActiveSubscription ,BookingController.updateStatus)
 app.put('/bookings/:id/cancel', authenticateUser, authorizeUser(["user"]), BookingController.cancel)
 app.delete('/bookings/delete/:id', authenticateUser, authorizeUser(["admin"]), BookingController.delete)

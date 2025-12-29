@@ -93,14 +93,35 @@ BookingController.create = async (req, res) => {
 
 BookingController.userBookings = async (req, res) => {
   try {
-    const filter = req.role === "admin" ? {} : { user: req.userId }; // user → only their bookings
-    const bookings = await Booking.find(filter)
-      .populate("provider", "businessName contact")
-      .sort({ createdAt: -1 });
-    if (!bookings.length) {
-      return res.status(404).json({ message: "No bookings found" });
+    const { status, search, serviceType } = req.query;
+    const baseFilter = req.role === "admin" ? {} : { user: req.userId };
+    const listFilter = { ...baseFilter };
+    if (status) {
+      listFilter.bookingStatus = status;
     }
-    res.status(200).json(bookings);
+    // fetch bookings
+    let bookings = await Booking.find(listFilter)
+      .populate("provider", "businessName contact serviceType")
+      .sort({ createdAt: -1 });
+
+    
+
+    const allBookings = await Booking.find(baseFilter);
+
+    const stats = {
+      total: allBookings.length,
+      pending: allBookings.filter((b) => b.bookingStatus === "pending").length,
+      confirmed: allBookings.filter((b) => b.bookingStatus === "confirmed")
+        .length,
+      completed: allBookings.filter((b) => b.bookingStatus === "completed")
+        .length,
+      cancelled: allBookings.filter((b) => b.bookingStatus === "cancelled")
+        .length,
+    };
+    res.status(200).json({
+      bookings,
+      stats,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -109,20 +130,27 @@ BookingController.userBookings = async (req, res) => {
 BookingController.providerBookings = async (req, res) => {
   try {
     const provider = await Provider.findOne({ user: req.userId });
+
     if (!provider) {
-      return res.status(404).json({ error: "Provider profile not found" });
+      // Provider exists logically but profile not created
+      return res.status(200).json([]);
     }
 
-    const bookings = await Booking.find({
+    const { status } = req.query;
+
+    const filter = {
       provider: provider._id,
-      bookingStatus: { $ne: "cancelled" },
-    })
+      bookingStatus: { $ne: "cancelled" }, // provider never sees cancelled
+    };
+
+    // backend filtering
+    if (status) {
+      filter.bookingStatus = status;
+    }
+
+    const bookings = await Booking.find(filter)
       .populate("user", "username email contact")
       .sort({ createdAt: -1 });
-
-    if (!bookings.length) {
-      return res.status(404).json({ message: "No bookings found" });
-    }
 
     res.status(200).json(bookings);
   } catch (err) {
@@ -394,6 +422,5 @@ BookingController.verifyRazorpayPayment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 export default BookingController;

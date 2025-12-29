@@ -58,23 +58,14 @@ ProviderController.create = async (req, res) => {
 ProviderController.list = async (req, res) => {
   try {
     const { page = 1, limit = 5, search = "" } = req.query;
-    const role = req.user?.role;
-
     const filters = {};
-
-    if (role !== "admin") {
-      filters.approvedByAdmin = true;
-    }
-
     if (search) {
       filters.$or = [
         { businessName: { $regex: search, $options: "i" } },
         { serviceType: { $regex: search, $options: "i" } },
       ];
     }
-
     const skip = (page - 1) * limit;
-
     const [providers, total] = await Promise.all([
       Provider.find(filters)
         .populate("user", "username email")
