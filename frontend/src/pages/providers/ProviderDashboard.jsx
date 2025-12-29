@@ -361,42 +361,6 @@ export default function ProviderDashboard() {
         {/* Right */}
         <aside className="lg:col-span-3 space-y-6">
           <SubscriptionCard />
-          <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription className="text-sm">
-                Recent status changes and actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {allBookings.slice(0, 6).map((b) => (
-                  <div
-                    key={b._id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-white"
-                  >
-                    <div>
-                      <div className="text-sm font-medium">
-                        {b.user?.username || b.user?.email}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {b.petType} — {b.service}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="text-xs">
-                        <Badge className="capitalize">{b.bookingStatus}</Badge>
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        {new Date(b.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="rounded-2xl shadow-sm cursor-pointer transform hover:-translate-y-1 transition border border-orange-100">
             <CardHeader>
               <CardTitle className="text-orange-700 font-semibold flex items-center gap-2">

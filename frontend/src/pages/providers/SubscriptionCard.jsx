@@ -120,7 +120,7 @@ export default function SubscriptionCard() {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Starts</span>
+              <span className="text-slate-600">Started</span>
               <span>{subscriptionMeta.startDate?.toLocaleDateString()}</span>
             </div>
 
