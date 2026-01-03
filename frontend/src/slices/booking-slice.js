@@ -32,7 +32,7 @@ export const fetchBookingsForUser = createAsyncThunk(
           limit,
         },
       });
-      console.log("🟢 BOOKINGS API RESPONSE:", res.data);
+      // console.log("BOOKINGS API RESPONSE:", res.data);
       return res.data;
     } catch (err) {
       return rejectWithValue(
