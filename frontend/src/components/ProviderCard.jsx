@@ -13,7 +13,7 @@ export default function ProviderCard({ provider, onView }) {
 
         <span className="absolute top-2 right-2 bg-white px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 shadow">
           <Star className="h-3 w-3 text-yellow-500" />
-          {provider.rating || 0}
+          {provider.rating.toFixed(1) || 0}
         </span>
 
         {typeof provider.distance === "number" && (
