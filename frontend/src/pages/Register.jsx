@@ -9,7 +9,7 @@ import Joi from "joi";
 import { toast } from "react-toastify";
 import {
   User, Mail, Lock, Phone, PawPrint, ArrowRight,
-  ShieldCheck, CalendarCheck, MapPin, Loader2, Eye, EyeOff,
+  ShieldCheck, CalendarCheck, MapPin, Loader2, Eye, EyeOff, Home,
 } from "lucide-react";
 
 // A small scrapbook of real pet-parent moments across species — deliberately
@@ -268,20 +268,29 @@ export default function Register() {
         <PawPrint className="pointer-events-none absolute -bottom-10 -left-8 h-44 w-44 -rotate-12 text-[#1F3D36]/[0.04]" />
 
         <div className="relative z-10 w-full max-w-md">
-          <div className="mb-6">
-            <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#D9694F]">
-              Create account
-            </p>
-            <h2
-              className="mt-2 text-[1.9rem] font-semibold text-[#16241F] sm:text-[2.15rem]"
-              style={{ fontFamily: "'Fraunces', Georgia, serif" }}
+          <div className="mb-6 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#D9694F]">
+                Create account
+              </p>
+              <h2
+                className="mt-2 text-[1.9rem] font-semibold text-[#16241F] sm:text-[2.15rem]"
+                style={{ fontFamily: "'Fraunces', Georgia, serif" }}
+              >
+                Join our community
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#5B6660]">
+                A few details and you're in — bookings, providers, and
+                reminders will all be waiting for you.
+              </p>
+            </div>
+            <Link
+              to="/"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#E9E1D0] bg-[#F6EFE1] px-3.5 py-2 text-sm font-semibold text-[#1F3D36] shadow-sm transition hover:border-[#1F3D36] hover:bg-white"
             >
-              Join our community
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[#5B6660]">
-              A few details and you're in — bookings, providers, and
-              reminders will all be waiting for you.
-            </p>
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
           </div>
 
           {serverError && (
