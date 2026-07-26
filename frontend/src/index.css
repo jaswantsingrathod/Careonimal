@@ -116,6 +116,11 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-orange-50 text-foreground;
+  }
+
+  html,
+  #root {
+    @apply min-h-screen bg-orange-50;
   }
 }
