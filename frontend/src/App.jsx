@@ -59,7 +59,7 @@ function App() {
         }}
       />
 
-      <div className="items-center pt-18 min-h-screen px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
+      <div className="items-center pt-18 min-h-screen px-6 py-10 bg-orange-50">
         <Navbar />
         <Skeleton />
         <ScrollToTop />
